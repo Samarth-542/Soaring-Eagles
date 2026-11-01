@@ -1,9 +1,9 @@
 # Product Requirements Document — Soaring Eagles Website
 
-**Status:** Draft for review  
+**Status:** Draft for review; homepage structure and contact presentation approved
 **Product owner:** Soaring Eagles  
 **Target launch:** 15 December 2026  
-**Last updated:** 31 October 2026  
+**Last updated:** 2 November 2026
 **Repository:** `https://github.com/Samarth-542/Soaring-Eagles.git`
 
 > This PRD records requirements gathered in the conversation and uses the existing Soaring Eagles project as a content and workflow reference. It does not authorize implementation choices or a push. Items marked **Open decision** need confirmation before the affected work begins.
@@ -13,6 +13,12 @@
 The Soaring Eagles website is the club’s public home for introducing the club, showcasing its work and current members, sharing its history and events, and enabling event registration. A private admin portal lets club administrators manage public content, event registrations and payments, member submissions, and contact requests.
 
 The first release is intended to be a complete live website by **15 December 2026**. The owner has said all requirements in this PRD are critical for that launch.
+
+**Current prototype:** The Vite/React frontend now presents Home as hero →
+upcoming-event placeholder → contact information/form → footer. The event
+section is not connected to event data, and the contact form has no backend
+endpoint yet; it must report submission failure honestly and provide its email
+fallback. This prototype status does not reduce the planned full-release scope.
 
 ## 2. Goals
 
@@ -82,7 +88,7 @@ As a visitor, I want to understand the club and find current activities so I can
 
 **Acceptance scenarios:**
 
-1. **Given** a visitor opens Home, **when** the page loads, **then** it introduces the club, highlights the latest event, and links to the Journey timeline.
+1. **Given** a visitor opens Home, **when** the page is viewed and scrolled, **then** it presents the hero, an upcoming-event section, a contact section with the confirmed public contact details and form, and the footer in that order; it does not embed Mission, Projects, Journey, Events, or Team sections.
 2. **Given** a visitor opens About, **when** the page is read, **then** the club mission, vision, and history are available.
 3. **Given** a visitor opens Team, **when** the roster is displayed, **then** only approved club-member profiles appear, grouped by study year.
 4. **Given** a visitor opens Projects or Journey, **when** content exists, **then** project details or dated milestones, stories, and photos are shown.
@@ -145,7 +151,7 @@ As an admin, I want to update the public site and respond to contact messages so
 ### Public site and content
 
 - **REQ-001:** The site MUST provide the public pages listed in Section 4.1.
-- **REQ-002:** Home MUST introduce Soaring Eagles, highlight the latest event, and link to the Journey timeline.
+- **REQ-002:** Home MUST contain, in order, the Soaring Eagles hero, an upcoming-event section, a contact section with the public contact details in REQ-045 and a contact form, and the footer. The homepage form MUST follow REQ-042, REQ-043, and REQ-058. Home MUST NOT embed Mission, Projects, Journey, Events, or Team sections; those remain on their dedicated public pages.
 - **REQ-003:** About MUST present the club’s mission, vision, and history.
 - **REQ-004:** The public Team page MUST show approved club-member profiles only and group them by study year.
 - **REQ-005:** An approved club-member profile MUST be able to display full name, photo, year, department, selected domains, and LinkedIn, X, and Instagram links.
@@ -222,7 +228,6 @@ As an admin, I want to update the public site and respond to contact messages so
 - **REQ-061:** The product MUST distinguish payment success, payment failure, payment retry, registration confirmation, and registration closure in user-visible status messages.
 - **REQ-062:** Production secrets MUST not be exposed in browser-delivered code or committed to the repository.
 - **REQ-063:** The Home hero MUST provide an interactive 360-degree view of the approved drone model, operable with pointer/touch and keyboard controls, with a static/reduced-motion fallback.
-- **REQ-064:** The Home hero MUST provide a user-controlled toggle between the drone model and a real public camera feed when the source is connected. It MUST show an honest unavailable state when no feed is connected and MUST NOT simulate a live stream. Telemetry MUST NOT be displayed until its public fields are approved.
 
 ## 8. Data entities
 

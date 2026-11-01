@@ -1,7 +1,9 @@
 import { lazy, Suspense, useCallback, useRef } from 'react'
 import type { Group } from 'three'
 import './App.css'
+import FlightPathCanvas from './components/FlightPathCanvas'
 import HeroIntroOverlay from './components/HeroIntroOverlay'
+import HomeContactForm from './components/HomeContactForm'
 import { useHeroReveal } from './components/HeroReveal'
 
 const DroneExperience = lazy(() => import('./DroneExperience'))
@@ -69,68 +71,64 @@ function App() {
           </div>
         </section>
 
-        <section className="intro-section content-section" id="mission">
-          <div className="section-index">01 / OUR MISSION</div>
-          <div className="intro-layout">
-            <h2>Curiosity<br />takes <em>flight.</em></h2>
-            <div className="intro-copy">
-              <p>Soaring Eagles is a student engineering team exploring aerodesign and aerial robotics through hands-on making, testing, and collaboration.</p>
-              <a className="text-link" href="#journey">GET TO KNOW US <span aria-hidden="true">↗</span></a>
-            </div>
-          </div>
-          <div className="mission-rule"><span>DESIGN</span><i /><span>BUILD</span><i /><span>TEST</span><i /><span>FLY</span></div>
-        </section>
-
-        <section className="projects-section content-section" id="projects">
+        <section className="upcoming-section content-section" id="events" aria-labelledby="upcoming-title">
+          <FlightPathCanvas />
           <div className="section-heading">
             <div>
-              <div className="section-index">02 / SELECTED WORK</div>
-              <h2>Made to <em>take off.</em></h2>
+              <div className="section-index">01 / WHAT'S NEXT</div>
+              <h2 id="upcoming-title">On the <em>horizon.</em></h2>
             </div>
-            <p>Ideas become aircraft through iteration,<br />teamwork, and time in the workshop.</p>
+            <p>Meet us at our next event.<br />Updates will appear here when announced.</p>
           </div>
-          <div className="project-grid">
-            <article className="project-card project-card-featured">
-              <img src="/images/projects/gajraj.jpg" alt="Soaring Eagles aircraft project displayed outdoors" loading="lazy" />
-              <div className="project-caption"><span>01 — AIRCRAFT DESIGN</span><span>EXPLORE THE PROJECT ↗</span></div>
-            </article>
-            <article className="project-card">
-              <img src="/images/projects/netra.jpg" alt="A Soaring Eagles aerial robotics project" loading="lazy" />
-              <div className="project-caption"><span>02 — AERIAL ROBOTICS</span><span>VIEW PROJECT ↗</span></div>
-            </article>
-          </div>
-          <p className="content-note">Project names, descriptions, and image credits will be confirmed before launch.</p>
-        </section>
-
-        <section className="journey-section content-section" id="journey">
-          <div className="section-index">03 / THE JOURNEY</div>
-          <div className="journey-layout">
-            <h2>Every flight<br />starts <em>somewhere.</em></h2>
-            <p>From first sketches to competition day, each milestone is built by the people who show up, learn, and try again.</p>
-          </div>
-          <div className="journey-line"><span>IDEA</span><i /><span>PROTOTYPE</span><i /><span>FLIGHT TEST</span><i /><span>WHAT'S NEXT</span></div>
-        </section>
-
-        <section className="events-section content-section" id="events">
-          <div className="section-heading">
-            <div>
-              <div className="section-index">04 / AROUND THE TEAM</div>
-              <h2>Built <em>together.</em></h2>
+          <div className="upcoming-card">
+            <div className="upcoming-card-index" aria-hidden="true">
+              <span>FLIGHT LOG</span>
+              <strong>01</strong>
+              <i />
             </div>
-            <p>Workshops, competitions, and the moments<br />that bring our community together.</p>
+            <div className="upcoming-card-copy">
+              <span className="event-status"><i /> EVENT UPDATES</span>
+              <h3>No upcoming events announced</h3>
+              <p>There are no upcoming events to share right now. Check back for the next Soaring Eagles announcement.</p>
+            </div>
+            <a className="upcoming-card-link" href="#contact">ASK US ABOUT EVENTS <span aria-hidden="true">↗</span></a>
           </div>
-          <div className="event-feature">
-            <img src="/images/events/design-challenge.jpg" alt="Soaring Eagles members at an aerodesign event" loading="lazy" />
-            <div className="event-overlay"><span>FROM THE ARCHIVE</span><strong>Learning by<br />making and flying.</strong><a href="#team">MEET THE TEAM ↗</a></div>
-          </div>
-          <p className="content-note">Event details and current opportunities will be published after club review.</p>
         </section>
 
-        <section className="join-section content-section" id="team">
-          <div className="section-index">05 / YOUR NEXT CHAPTER</div>
-          <h2>Ready to<br /><em>take flight?</em></h2>
-          <p>Meet the people behind the projects and discover how to get involved.</p>
-          <a className="primary-link" href="mailto:tseofficial2011@gmail.com">CONNECT WITH THE TEAM <span aria-hidden="true">↗</span></a>
+        <section className="contact-section content-section" id="contact" aria-labelledby="contact-title">
+          <div className="contact-information">
+            <div className="section-index">02 / GET IN TOUCH</div>
+            <div className="contact-information-card">
+              <h2 id="contact-title">Contact Information</h2>
+              <div className="contact-information-list">
+                <div className="contact-information-item">
+                  <span className="contact-information-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+                  </span>
+                  <div><h3>Email</h3><a href="mailto:tseofficial2011@gmail.com">tseofficial2011@gmail.com</a></div>
+                </div>
+                <div className="contact-information-item">
+                  <span className="contact-information-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 9v12M7 5.5v.1M11 21v-7.5a4.5 4.5 0 0 1 9 0V21M3 9h8v12H3z" /></svg>
+                  </span>
+                  <div><h3>LinkedIn</h3><a href="https://linkedin.com/in/soaring-eagles-a7a19831b" target="_blank" rel="noreferrer">linkedin.com/in/soaring-eagles-a7a19831b</a></div>
+                </div>
+                <div className="contact-information-item">
+                  <span className="contact-information-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M22 5.9a8 8 0 0 1-2.4.7 4.2 4.2 0 0 0 1.8-2.3 8.3 8.3 0 0 1-2.7 1 4.1 4.1 0 0 0-7 3.7 11.7 11.7 0 0 1-8.5-4.3 4.1 4.1 0 0 0 1.3 5.5 4 4 0 0 1-1.9-.5v.1a4.1 4.1 0 0 0 3.3 4 4 4 0 0 1-1.8.1 4.1 4.1 0 0 0 3.8 2.8A8.3 8.3 0 0 1 2 18.4 11.7 11.7 0 0 0 20 8.5v-.6A8.2 8.2 0 0 0 22 5.9Z" /></svg>
+                  </span>
+                  <div><h3>X (Twitter)</h3><a href="https://x.com/TSE_015" target="_blank" rel="noreferrer">x.com/TSE_015</a></div>
+                </div>
+                <div className="contact-information-item">
+                  <span className="contact-information-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                  </span>
+                  <div><h3>Location</h3><address>Soaring Eagles Aeromodelling Lab<br />Near Mechanical Block,<br />Siddaganga Institute of Technology<br />Tumkur, 572103</address></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <HomeContactForm />
         </section>
       </main>
 

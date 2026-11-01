@@ -1,15 +1,16 @@
 # Soaring Eagles Website — Architecture
 
-**Status:** Proposed architecture for the planned website  
+**Status:** Target architecture with a partial frontend prototype
 **Scope:** New application in `Soaring/`; not a description of the existing root application  
 **Requirements source:** [prd.md](./prd.md)  
 **Reference notes:** [MASTER_PROJECT_GUIDE.md](./MASTER_PROJECT_GUIDE.md)
 
-> The `Soaring/` directory contains planning documents and reviewed assets, not
-> an implemented application. Vite/React/TypeScript, Java 21/Spring Boot 3.x/
-> Maven, Supabase PostgreSQL/Storage, Resend, and Spring Security admin
-> authentication are selected directions. Hosting, payment provider, 3D
-> rendering library, and live-feed source remain open.
+> A Vite/React/TypeScript frontend prototype exists under `frontend/`; the
+> Spring Boot backend and data-backed public routes have not been implemented.
+> Java 21/Spring Boot 3.x/Maven, Supabase PostgreSQL/Storage, Resend, and
+> Spring Security admin authentication are selected directions. Hosting and
+> payment provider remain open. The frontend's 3D implementation uses Three.js,
+> React Three Fiber, and Drei. A live camera feed is not in the current scope.
 
 ## 1. Goals and boundaries
 
@@ -55,7 +56,7 @@ for starting the Express admin server. These are the old site's actual
 dependencies and configuration, not a declaration that every dependency is
 used by the new application.
 
-### 2.2 Planned website (selected direction; not yet implemented)
+### 2.2 Planned website (selected direction; partially implemented)
 
 The selected direction is a Vite/React frontend with a separate Java 21,
 Spring Boot 3.x modular-monolith backend built with Maven, and PostgreSQL
@@ -69,14 +70,14 @@ transactional email. Hosting/domain and payment provider remain open.
 | Area | Proposed technology | Rationale / boundary |
 |---|---|---|
 | Frontend | Vite, React, TypeScript | Public pages and admin UI in a single-page app; frontend communicates with the backend over HTTP and does not own privileged operations. |
-| UI and styles | Tailwind CSS with a small, accessible component system | Supports responsive layouts without carrying over the older site's component setup wholesale. |
-| Forms and validation | React Hook Form and Zod, with server-side schema validation | Reuse schemas where practical, but always validate on the server as well as in the browser. |
+| UI and styles | Current prototype: React components and project CSS (`App.css`, `index.css`); no Tailwind dependency | Continue the existing charcoal/off-white/copper theme and Space Grotesk/IBM Plex Mono typography. A future component system remains to be selected if needed. |
+| Forms and validation | Current contact form uses native React form controls and client-side validation; no backend validation exists yet | Keep accessible submission/error states and add server-side validation with the future API. A shared form library is not selected. |
 | Backend API | Java 21, Spring Boot 3.x, Spring Web, Maven | Modular monolith owning business rules, server-side validation, authorization, and integrations. |
 | Persistence | PostgreSQL hosted by Supabase; Spring Data JPA; Flyway migrations | Relational records fit events, registrations, teams, profiles, content, and contact histories. |
 | Authentication | Spring Security username/password with managed credentials; email identifier and verified-email reset | Admin-only access; password-only at launch. Prevent deletion of the last active admin and confirm self-removal. |
 | File storage | Supabase Storage | Keep pending profile images and contact attachments private; publish approved public media deliberately. |
-| 3D hero | Three.js with React Three Fiber and Drei; GSAP for the intro timeline | Render the approved GLB interactively, preload it before revealing the hero, and honor reduced-motion preferences. |
-| Live drone feed | Not included in the current frontend | The hero presents the interactive 3D model only. Revisit a live stream as a separate feature after its source, access, and privacy requirements are confirmed. |
+| 3D hero | Three.js with React Three Fiber and Drei; GSAP is present in the existing frontend | Render the approved GLB interactively and honor reduced-motion preferences. |
+| Live drone feed | Not included in the current scope | Do not add a feed toggle or imply a live stream is available. Revisit only as a separately approved feature. |
 | Payments | Provider-neutral integration; INR payment provider undecided | Verify payment status on the backend using authenticated provider callbacks/webhooks. |
 | Email | Resend, through a server-side adapter | Contact notifications/replies and event confirmations; no automatic member-profile emails. |
 | Testing and quality | TypeScript checks and ESLint for frontend; JUnit/Spring tests for backend; browser tests for critical flows | GitHub pull requests, automated CI, and preview deployments are selected. |
@@ -112,10 +113,13 @@ flowchart TD
 
 ### Responsibilities
 
-- **Frontend application:** Render accessible pages and forms. It calls the
-  Spring Boot API and does not connect directly to privileged database,
-  payment, or email credentials. A live aircraft feed is not part of the
-  current homepage.
+- **Frontend application:** Render accessible pages and forms. The current
+  Home prototype is hero → upcoming-event empty state → contact details/form →
+  footer, with native document scrolling and a decorative event canvas. It
+  calls the Spring Boot API and does not connect directly to privileged
+  database, payment, or email credentials. The contact API and event-data
+  connection do not exist yet; a live aircraft feed is not part of the current
+  homepage.
 - **Admin application:** Present management workflows only after sign-in. UI
   visibility is not an authorization control.
 - **Spring Boot API:** Validate requests, establish the caller's identity and
@@ -138,18 +142,18 @@ by the Spring Boot backend.
 
 ### 4.1 Public browsing
 
-1. A visitor opens Home and sees the club introduction, an interactive
-   360-degree view of the approved drone GLB, the latest published event, and a
-   link to the Journey.
-2. The visitor can switch the hero to the public camera feed. Until a real feed
-   source is connected, the toggle shows an explicit unavailable state; it
-   must not simulate live video. Telemetry remains hidden until its fields are
-   approved.
-3. Shared navigation leads to About, Team, Projects, Events, Journey, and
-   Contact.
-4. Public page loaders request only published content. Team queries include
+1. In the current prototype, a visitor scrolls from the existing hero to an
+   upcoming-event empty state with a decorative canvas, then to the contact
+   details and form, and finally the footer. The form submission is not
+   connected to a backend; it reports the failure and provides an email
+   fallback.
+2. The intended full site has separate About, Team, Projects, Events, Journey,
+   and Contact routes; these routes are not implemented in the prototype.
+   Existing header/hero links still target removed homepage anchors and need
+   alignment with the eventual navigation/routes.
+3. Public page loaders will request only published content. Team queries include
    approved profiles only and group them by study year.
-5. If there are no upcoming events or approved profiles, pages render designed
+4. If there are no upcoming events or approved profiles, pages render designed
    empty states rather than failing.
 
 ### 4.2 Event registration and payment
@@ -272,9 +276,13 @@ and ownership.
 
 ## 7. Proposed folder and file structure
 
-This is the intended structure after the app is scaffolded; it does not exist
-yet. Keep the existing `assets/` library, and copy approved assets into the
-frontend's public or managed-media locations when implementation begins.
+This is the target structure; the complete layout does not exist yet. The
+current frontend prototype is a Vite app under `frontend/`, with its Home
+composition in `src/App.tsx`, styling in `src/App.css`/`src/index.css`, and
+shared visual components in `src/components/`. The `backend/` application and
+planned feature routes do not exist yet. Keep the existing `assets/` library
+and copy approved assets into frontend public or managed-media locations as
+implementation proceeds.
 
 ```text
 Soaring/

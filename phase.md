@@ -12,10 +12,13 @@
 > task notes below.
 
 > **Implementation status:** Phase 1 frontend foundation and the Phase 2
-> homepage shell/hero are in progress. The Vite/React/TypeScript frontend and
-> first homepage prototype exist under `frontend/`; T013, T023, T024, and T026
-> are partially implemented and are not complete. The Spring Boot backend,
-> remaining public routes, and production integrations have not started.
+> homepage are in progress. The Vite/React/TypeScript frontend and homepage
+> prototype exist under `frontend/`; T013, T023, T024, and T026 are partially
+> implemented and are not complete. Home currently has the existing hero,
+> static upcoming-event empty state with a decorative canvas, contact details
+> and form, and the existing footer. Event data and contact submissions are
+> not backend-connected. The Spring Boot backend, remaining public routes, and
+> production integrations have not started.
 > Paths below may describe planned files that do not exist yet. The launch date is aggressive for the
 > full scope, especially while payment provider, hosting/domain, retention
 > policy, team availability, and selected technical details remain unresolved.
@@ -38,9 +41,16 @@
   during checkout is selected; hold duration/expiry mechanics are to be decided
   with the provider.
 - **Selected-recruit profile access:** One shared secret link, manually rotated.
-- **Design:** Use 21hrs.space as high-level visual inspiration; the responsive
-  hero centers on a realistic, interactive 360-degree drone. See
-  `design.md`; do not copy source, media, or unlicensed fonts.
+- **Design:** 21hrs.space is a high-level reference for dark aerospace visuals
+  and scroll continuity, not for the Home content order or exact scene
+  sequence. Home uses charcoal, warm off-white, restrained copper, Space
+  Grotesk, and IBM Plex Mono; see `design.md`.
+- **Homepage:** Hero → upcoming event → contact details/form → footer. Keep
+  Mission, Projects, Journey, Events, and Team off Home. The existing hero is
+  retained; a camera-feed or telemetry toggle is not in the approved scope.
+- **Scroll experience:** The 21hrs.space reference informs how scrolling can
+  guide a continuous, cinematic story; it does not prescribe the same scenes,
+  order, or exact transitions. Use Soaring Eagles' content and identity.
 - **Legacy material:** Reuse only owner-approved public content/media after
   fact review; do not migrate personal, registration, contact, or payment data.
 - **Release:** Full PRD scope is required for launch on the target date.
@@ -88,7 +98,7 @@ are understood.
 - [ ] T008 [Plan:0.2] Confirm the shared recruit-link distribution/rotation owner, storage method, rate limits, exposure response, and when rotation invalidates active form sessions; record the operating procedure in `architecture.md`.
 - [ ] T009 [Plan:0.3] Set password policy, login throttling/lockout, email-reset token expiry, email delivery failure recovery, admin audit requirements, and last-admin safeguards; record acceptance criteria in `architecture.md`.
 - [ ] T010 [Plan:0.3] Select a finite checkout-hold duration and expiry/release behavior with the payment-provider design; document deadline/capacity race handling in `architecture.md`.
-- [ ] T011 [Plan:0.3] Confirm launch content, the 21hrs.space-inspired visual direction, font licensing, attribution/license record for `assets/drone/assault_drone_concept.glb`, live feed source and public-safety/privacy policy, approved telemetry fields, accessibility checklist, supported browsers/viewports, and content approval owner in `prd.md` and `design.md`. The frontend may show an honest unavailable feed state until the source is ready.
+- [ ] T011 [Plan:0.3] Confirm launch content and copy for the Home hero, upcoming-event and contact sections; the 21hrs.space-inspired visual direction; font licensing; attribution/license record for `assets/drone/assault_drone_concept.glb`; accessibility checklist; supported browsers/viewports; and content approval owner in `prd.md` and `design.md`.
 - [ ] T012 [Plan:0.3] Estimate each phase against the 15 December 2026 launch target using the actual team/availability; raise a go/no-go or schedule/scope change for owner approval in `phase.md`.
 
 ### Exit gate
@@ -143,8 +153,8 @@ database/provider details.
 
 ### Work items
 
-- [ ] T023 [US1] [Plan:2.1] Build the shared site layout, navigation, footer, page metadata, responsive behavior, and accessible UI primitives using the approved visual system in `design.md` in `frontend/src/components/` and `frontend/src/app/`.
-- [ ] T024 [US1] [Plan:2.1] Implement the Home hero with the complete owner-approved GLB as an interactive 360-degree model, pointer/touch/keyboard controls, and a user-controlled toggle to a public live-feed panel; show an honest unavailable state until the real source is integrated, display no telemetry before approval, and provide reduced-motion/WebGL fallbacks. Also implement Home and About content for club introduction, mission, vision, history, latest published event slot, and Journey link in `frontend/src/pages/`. (In progress: prototype hero/viewer, complete-GLB framing with supplied axes and slightly enlarged model, desktop/tablet title below top labels and model beneath the name, and responsive spacing for tagline/controls/attribution/metadata/scroll hint; hero “Explore Our Work” button removed per owner request. Feed unavailable state exists. Owner confirms the full model is approved; remaining route content is outstanding.)
+- [ ] T023 [US1] [Plan:2.1] Build the shared site layout, navigation, footer, page metadata, responsive behavior, and accessible UI primitives using the approved visual system in `design.md` in `frontend/src/components/` and `frontend/src/app/`. Align existing header/hero links that currently point to removed Home anchors with the eventual public routes.
+- [ ] T024 [US1] [Plan:2.1] Implement Home as four ordered parts: the existing hero, an upcoming-event section, a contact section showing the confirmed contact details and form (full name, email, subject, message, optional document attachment, submission status/errors), and the footer. The form must ultimately use the shared contact-request workflow from REQ-042/REQ-043 and satisfy REQ-058, not create a separate homepage-only workflow. Do not embed Mission, Projects, Journey, Events, or Team sections on Home. Use 21hrs.space for scroll continuity and atmosphere, not its exact scene sequence; preserve native scrolling and honor reduced-motion preferences. (In progress: existing hero retained; upcoming-event empty state and decorative canvas, contact details/form, and footer are in the frontend. The optional PDF/JPEG/PNG attachment is limited to 10 MB. `/api/contact` and event-data integration do not exist yet; the form reports failure and offers the email fallback rather than claiming delivery. Contact UI uses the landing-page charcoal/off-white/copper theme and Space Grotesk/IBM Plex Mono. The overall Home task remains incomplete pending data/API integration, navigation alignment, and focused validation.)
 - [ ] T025 [US1] [Plan:2.1] Implement public Projects and Journey pages, typed content rendering, responsive media, and explicit empty/loading/error states in `frontend/src/pages/`.
 - [ ] T026 [US1] [Plan:2.2] Copy approved logo, project, event, team, and drone assets into `frontend/public/`; preserve the complete GLB and creator attribution. Optimize media and preserve attribution/license metadata. (In progress: selected assets have been copied; owner confirms rights to display the full model including its weapon; runtime uses the complete GLB with its supplied axes.)
 - [ ] T027 [US1] [Plan:2.3] Create Project and Journey persistence, migration, DTOs, service, repository, and public/admin REST endpoints in `backend/src/main/java/<package>/projects/` and `journey/`.
@@ -346,7 +356,7 @@ from mocks alone when provider/database behavior is required.
 | REQ ID | Requirement summary | Planned phase/item | Completion evidence |
 |---|---|---|---|
 | REQ-001 | Public pages | P2.1 | Public route/page tests |
-| REQ-002 | Home intro, latest event, Journey link | P2.1, P3.2 | Home browser test |
+| REQ-002 | Home hero, upcoming event, contact, footer; no extra content sections | P2.1, P3.2 | Home order/section browser test |
 | REQ-003 | About mission, vision, history | P2.1 | About content review |
 | REQ-004 | Approved Team profiles grouped by year | P5.2 | Team API/UI tests |
 | REQ-005 | Approved public profile fields and social links | P5.2 | Profile DTO and browser tests |
@@ -408,7 +418,6 @@ from mocks alone when provider/database behavior is required.
 | REQ-061 | Distinct payment and registration states | P4.1, P4.2 | UI state-transition tests |
 | REQ-062 | No production secrets in client or repository | P1.5, P7.1, P7.3 | Secret scan/configuration review |
 | REQ-063 | Interactive 360-degree drone with accessible controls and fallback | P2.1, P7.2 | Hero interaction, keyboard, reduced-motion, and WebGL-fallback tests |
-| REQ-064 | Public live-feed toggle, honest unavailable state, no unapproved telemetry | P0.3, P2.1 | Feed-source/privacy approval; toggle and unavailable-state tests; telemetry display review |
 
 ## 13. Phase completion and change control
 

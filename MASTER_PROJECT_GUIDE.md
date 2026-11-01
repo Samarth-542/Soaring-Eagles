@@ -1,8 +1,8 @@
 # Soaring Eagles — Master Project Guide
 
-This document combines the information in the existing project's README files with a proposed, from-scratch build sequence for the new Soaring Eagles website.
+This document combines information from the existing project's README files with the selected direction and build sequence for the new Soaring Eagles website.
 
-> **Status:** Planning guide, not an implementation specification. The technology recommendations and feature sequence below are proposals. Confirm product requirements before building feature-specific behavior.
+> **Status:** Working guide. The new Vite/React/TypeScript frontend has a partial Home prototype; the Spring Boot backend and remaining public routes are still planned. See `phase.md` for current task status.
 
 ## 1. Project boundaries
 
@@ -91,9 +91,10 @@ PostgreSQL through its backend persistence layer.
 
 1. **Frontend:** Vite + React + TypeScript SPA; use a separate HTTP API client
    for Spring Boot REST endpoints.
-2. **Styling, routing, and forms:** Tailwind CSS, router, component system,
-   React Hook Form, and Zod are implementation choices to confirm while
-   scaffolding. Validate all requests again in Spring Boot.
+2. **Styling, routing, and forms:** The current prototype uses project CSS,
+   native React form controls, Space Grotesk, and IBM Plex Mono. No frontend
+   router or form library is selected; validate all requests again in Spring
+   Boot.
 3. **Backend:** Java 21 + Spring Boot 3.x + Maven, organized as a modular
    monolith. Spring Web, Spring Security, Spring Data JPA, and Bean Validation
    are the planned building blocks.
@@ -144,8 +145,8 @@ Each phase should finish with reviewable behavior and a quality check before the
 
 - Verify club facts, names, dates, achievements, links, and recruitment details against current club-approved information.
 - Define page ownership and navigation.
-- Apply the owner-selected 21hrs.space-inspired visual direction from `design.md`; use the owner-approved `assets/drone/assault_drone_concept.glb`, preserve creator attribution, and verify font/model license records.
-- Establish typography, colors, spacing, responsive breakpoints, buttons, cards, and image treatment, including the interactive 360-degree hero, user-controlled public-feed toggle, and reduced-motion/offline/static fallbacks. Do not simulate a live feed or display unapproved telemetry.
+- Apply the owner-selected visual direction from `design.md`; use the owner-approved `assets/drone/assault_drone_concept.glb`, preserve creator attribution, and verify font/model license records.
+- Keep the confirmed Home sequence: existing hero, upcoming-event section, contact details/form, footer. Use charcoal/off-white/copper styling and the current project fonts. There is no live-feed toggle in the approved scope.
 - Make initial desktop and mobile layouts before building data-backed features.
 
 **Gate:** page and content review; responsive foundation approved.
@@ -153,7 +154,7 @@ Each phase should finish with reviewable behavior and a quality check before the
 ### Phase 3 — Public information pages
 
 - Build the shared header, navigation, footer, and accessible page layout.
-- Implement the agreed home, team, projects, events, journey, and contact pages.
+- Continue the Home prototype below its existing hero without changing the hero: upcoming-event placeholder/canvas, contact information and form, then footer. Build Team, Projects, Events, Journey, and Contact as separate routes in later work.
 - Start with content that can be safely stored as local typed data; avoid a database when it does not yet add value.
 - Add image descriptions, empty states, page titles, metadata, and accessible focus states.
 
@@ -248,7 +249,8 @@ privileged code in the Spring Boot backend, not in the browser app.
 
 ## 7. Local development and delivery workflow
 
-Once the new frontend has its package manifest:
+The frontend package manifest and development scripts exist under `frontend/`.
+Run these commands from that directory:
 
 ```powershell
 npm install
@@ -258,10 +260,8 @@ npm run build
 npm run preview
 ```
 
-Use the scripts that actually exist in `frontend/package.json`; these commands
-are a proposed convention based on the reference, not a claim that the current
-`Soaring/` folder already has an application scaffold. The Spring Boot backend
-will have its own Maven build and test commands.
+The Spring Boot backend has not been scaffolded and will have its own Maven
+build and test commands once implemented.
 
 For each feature:
 
