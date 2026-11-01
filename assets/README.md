@@ -21,7 +21,9 @@ This folder contains selected visual assets copied from the Soaring Eagles refer
   an original Soaring Eagles aircraft.
 - Review names, dates, and descriptions against current club-approved information.
 - Optimize large images and provide responsive sizes/modern formats when the design and build tooling are chosen. The originals are retained here as reference assets.
-- When a web-app scaffold is added, put the favicon and `robots.txt` in the framework's public/static directory so browsers and crawlers can access them at the expected root URLs.
+- The Vite frontend is scaffolded. Keep the favicon and `robots.txt` in
+  `frontend/public/` so browsers and crawlers can access them at the expected
+  root URLs.
 - `robots.txt` is a reference copy; update it for the final production domain and indexing policy before launch.
 
 ## Deliberately not copied

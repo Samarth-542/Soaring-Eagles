@@ -1,7 +1,7 @@
 # Soaring Eagles Website — Design Direction
 
-**Status:** Updated from the owner's 21hrs.space reference  
-**Scope:** Site-wide visual language, with a cinematic, interactive home hero  
+**Status:** Updated to current owner decisions and homepage prototype
+**Scope:** Site-wide visual language, interactive home hero, event and contact sections
 **Requirements:** [prd.md](./prd.md)  
 **Architecture:** [architecture.md](./architecture.md)  
 **Reference asset notes:** [assets/README.md](./assets/README.md)
@@ -71,9 +71,10 @@ observations, not a complete audit of every route or state.
   tangible rather than like a generic SaaS product.
 - Use near-black/deep-charcoal backgrounds, warm white text, muted gray
   secondary labels, and a restrained warm accent for framing/active states.
-- Cyan may remain a recognizable Soaring Eagles accent, but use it sparingly
-  alongside the reference's quiet monochrome/warm-metal treatment. Final brand
-  palette requires owner approval.
+- Use the landing page's near-black/charcoal surfaces, warm off-white text,
+  muted gray labels, and restrained copper accent throughout Home. The contact
+  cards, icons, links, focus states, and submit button follow this same palette;
+  do not introduce a separate cyan theme in that section.
 - Use subtle grain, stars, technical grids, or telemetry-style details only
   when they support the aircraft story. Avoid visual noise and excessive neon.
 - Use real, approved club photography and project imagery in supporting
@@ -88,6 +89,10 @@ observations, not a complete audit of every route or state.
   the reference site's font files without authorization.
 - If rights are unavailable, select licensed alternatives with a similar
   character: a bold geometric display face and a readable monospaced face.
+- The current frontend uses Space Grotesk for display/body text and IBM Plex
+  Mono for compact technical labels. Continue using these installed,
+  project-wide font variables (`--font-display`, `--font-body`, and
+  `--font-mono`) rather than introducing a different contact-section font.
 - Use extremely large uppercase display type selectively (hero/section
   headings); keep body copy comfortably sized and readable.
 - Avoid tracking, small caps, or low contrast that harms legibility.
@@ -165,26 +170,24 @@ observations, not a complete audit of every route or state.
 
 ### Scroll continuation
 
-Use the hero to introduce a scrollable story about the club. The reference's
-timeline/map-like progression can inspire navigation, but the Soaring Eagles
-content must follow approved club information rather than Apollo-specific
-events.
-
-Potential story sequence (confirm content and order with the club):
+Use the reference to inform the *behavior and feel* of scrolling—continuity,
+deliberate pacing, visual transitions, and depth—not as a blueprint for its
+scene sequence or content. The Home page has exactly this content order:
 
 1. **Hero:** introduce Soaring Eagles and its aircraft.
-2. **Mission:** explain student aerodesign, aerial robotics, and collaboration.
-3. **Projects:** spotlight aircraft and engineering work.
-4. **Achievements / journey:** show verified competition results and milestones.
-5. **Events:** make the latest published event easy to find and register for.
-6. **Team / recruitment:** introduce members and provide a clear join/contact
-   action.
+2. **Upcoming event:** highlight the next published event and provide a clear
+   path to its details/registration; show a useful empty state when none exists.
+3. **Contact:** include the public contact form so visitors can message the
+   club without leaving Home. Reuse the site's contact-submission workflow;
+   show accessible validation, submission, and error states.
+4. **Footer.**
 
-The lower page can use a chronological rail or curated chapter markers. Keep
-actual text and cards readable, navigable, and useful when animation is off.
-Other pages (projects, events, team, journey, registration, contact, and admin)
-should share the colors, typography, rules, and label style, but remain
-content-first and task-oriented.
+Do not add Mission, Projects, Journey, Events, or Team sections to Home. These
+remain dedicated pages reachable through the site's navigation. Keep ordinary
+browser scrolling; transitions should support the four-part story rather than
+turning the page into a copy of the reference. Any scroll-linked movement must
+be reversible, responsive, and disabled or simplified for reduced-motion
+preferences. Keep content readable and useful when animation is off.
 
 ## 5. Motion and interaction
 
@@ -246,7 +249,8 @@ layouts and supported device/browser requirements.
 - Prototype on mid/low-range mobile hardware before committing to a detailed
   model. Provide a reduced-detail/static fallback when performance is poor.
 - Select a rendering library only after a short implementation spike.
-  `three.js` / React Three Fiber are candidates, not approved dependencies.
+  The current prototype uses Three.js with React Three Fiber and Drei;
+  performance across the supported device matrix still needs validation.
 
 ## 8. Intellectual property and asset requirements
 
@@ -268,30 +272,31 @@ layouts and supported device/browser requirements.
 - The existing asset guidance in [assets/README.md](./assets/README.md)
   remains applicable to the club's own media.
 
-## 9. Live feed requirements
+## 9. Homepage continuation — current owner-approved scope
 
-- The requested hero includes both the rotatable 3D model and a live drone
-  camera/telemetry view. No hardware, stream endpoint, authorization model, or
-  telemetry schema has been identified yet; this is a requirement direction,
-  not a working integration.
-- The owner selected a user-controlled toggle between the 3D model and live
-  feed, rather than showing both simultaneously.
-- The feed is intended to be public when available. Until hardware/service and
-  stream access are provided, implement only the toggle and an honest
-  unavailable state; integrate the real feed later.
-- Do not display telemetry until the owner approves the data fields.
-- Before feed integration, establish the drone/camera system, supported stream
-  protocol/API, safe public stream access, and what telemetry values (if any)
-  may be displayed.
-- Confirm camera/privacy review, authorization for live public streaming, safe
-  operation, and what the website displays when the drone is powered off or
-  disconnected.
-- Keep feed delivery server-side or through an approved streaming service as
-  required; do not expose secrets or privileged device credentials in the
-  browser.
-- Design the feed as an optional, explicitly labeled experience that does not
-  block the model or normal site content. The toggle's exact labels, default
-  state, and unavailable behavior remain open for owner approval.
+- The Home page order is **hero → upcoming event → contact information and
+  contact form → footer**.
+- Do not add Mission, Projects, Journey, Events, or Team content sections to
+  Home. Those belong on their own public pages when those routes are built.
+- The 21hrs.space reference informs the continuity and pacing of scrolling;
+  it does not prescribe the same scenes or exact transitions. Keep native
+  scrolling and use reversible, restrained motion. The existing page currently
+  flows through normal document scrolling; a custom scroll-linked cinematic
+  transition has not been implemented below the hero.
+- The upcoming-event section currently shows an honest “no upcoming events”
+  state. It is not yet connected to published event data.
+- The event section has a decorative, static canvas with subtle flight paths,
+  orbit contours, points, and atmospheric glow. It is background-only,
+  responsive, and must not interfere with content or pointer input.
+- The contact area presents the confirmed email, LinkedIn, X, and Tumakuru
+  location beside the form. Match the Home charcoal/off-white/copper palette
+  and Space Grotesk/IBM Plex Mono typography.
+- The form collects full name, email, subject, message, and an optional PDF,
+  JPEG, or PNG attachment up to 10 MB. Client-side validation and honest error
+  messaging are implemented; `/api/contact` has no backend yet, so online
+  submissions are not connected and the email fallback must remain visible.
+- Do not imply that a camera feed or telemetry feature is part of the current
+  approved homepage scope.
 
 ## 10. Implementation prompt
 
@@ -305,30 +310,27 @@ layouts and supported device/browser requirements.
 > Let users rotate the model through 360 degrees with pointer and touch drag;
 > provide keyboard-accessible rotate controls, meaningful hover feedback only
 > on hover-capable devices, and a reduced-motion/static fallback. The owner
-> also wants a live camera/telemetry experience; do not implement a simulated
-> feed. Wait for approved hardware/API, privacy, authorization, telemetry, and
-> offline-state requirements. Keep all content and actions in semantic HTML and
-> the 3D model informative, never a navigation barrier. Continue into
-> club-specific sections for mission, projects, verified achievements, events,
-> team, and recruitment. Adapt the composition intentionally for phones,
-> tablets, and desktops, with a performant fallback on constrained devices.
-> Use only approved public club facts and licensed media. Select a 3D rendering
-> dependency only after a mobile performance prototype.
+> should not be made into a live-feed toggle. Keep all content and actions in
+> semantic HTML and the 3D model informative, never a navigation barrier. Below
+> the hero, show only the upcoming-event section, the contact-information card
+> and contact form, then the footer. The event section may use a subtle,
+> decorative canvas backdrop. Use the reference for scroll continuity and
+> atmosphere, not its exact flow. Adapt the composition for phones, tablets,
+> and desktops; use the existing Space Grotesk/IBM Plex Mono fonts and
+> charcoal/off-white/copper theme. Use only approved public club facts and
+> licensed media.
 
 ## 11. Approval checklist and unresolved choices
 
 - Preserve the complete model and creator attribution as confirmed by the
   owner; do not hide the weapon mesh or alter the GLB axes.
-- Identify the camera/telemetry hardware or service, stream protocol/API, and
-  public-feed safety/privacy review. Approve telemetry fields before display.
-- Confirm the toggle labels, default state, and behavior when the feed is
-  unavailable.
 - Confirm whether idle auto-rotation is desired in addition to user-controlled
   360 rotation.
-- Approve the site-wide palette, exact font (subject to licensing), hero
-  headline/copy, CTA, and story-section order.
-- Confirm whether the long scroll-story/timeline treatment should extend beyond
-  the home page.
-- Select 3D renderer and mobile quality targets only after prototype testing.
+- The Home sequence and the no-extra-sections scope are confirmed. Confirm
+  approved event content when an event is ready to publish.
+- The prototype's font and palette are established; complete licensing/content
+  review and mobile quality checks before launch.
+- Select mobile quality targets and verify the existing 3D renderer on the
+  supported device matrix.
 - Define supported browser/device matrix and review reduced-motion/WebGL
   fallback behavior.

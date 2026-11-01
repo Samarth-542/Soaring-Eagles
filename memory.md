@@ -26,16 +26,18 @@ and remaining product features have not started.
 | [rules.md](./rules.md) | Complete | Engineering and AI-agent guidelines. |
 | [MASTER_PROJECT_GUIDE.md](./MASTER_PROJECT_GUIDE.md) | Complete; living guide | Project boundary, selected direction, and build guidance. Keep consistent with the PRD and architecture. |
 | [phase.md](./phase.md) | Updated; execution plan | Phases, tasks, exit gates, testing strategy, and mapping of all 64 PRD requirements. Update task status as work progresses. |
-| [design.md](./design.md) | Updated; design brief | 21hrs.space-inspired visual system, approved GLB drone hero, public feed toggle, responsive interaction, licensing, accessibility, and performance constraints. Feed source and content approvals remain open. |
+| [design.md](./design.md) | Updated; living design brief | Current Home order, charcoal/off-white/copper theme, Space Grotesk/IBM Plex Mono, decorative event canvas, accessibility, and asset guidance. |
 | [assets/README.md](./assets/README.md) | Updated; asset guidance | Lists the drone model and its attribution/license handling alongside the existing reviewed assets. |
-| [frontend/](./frontend/) | In progress; frontend prototype | Responsive homepage, interactive drone/feed switch, local media/fonts, and Vite scripts. Build, lint, and desktop/mobile browser checks pass; production readiness and owner content review remain outstanding. |
-| [frontend/src/App.tsx](./frontend/src/App.tsx) | In progress | Homepage sections and navigation; removed the hero “Explore Our Work” button per owner request; 3D experience is deferred briefly to prioritize initial content rendering. |
-| [frontend/src/DroneExperience.tsx](./frontend/src/DroneExperience.tsx) | In progress | Interactive 3D model using the complete original GLB and supplied axes, with visible-geometry camera bounds, slight enlargement, keyboard/drag controls, public live-feed toggle, unavailable state, and attribution. |
-| [frontend/src/App.css](./frontend/src/App.css), [frontend/src/index.css](./frontend/src/index.css) | In progress | Responsive cinematic styling; title, kicker, and overline have distinct rows; toolbar sits outside the title; desktop tagline is lifted above the drone while the CTA remains in place; controls, attribution, metadata, and scroll hint are spaced. |
+| [frontend/](./frontend/) | In progress; frontend prototype | Vite/React/TypeScript app with existing interactive drone hero, event placeholder/canvas, contact details/form, footer, local media/fonts, and scripts. No backend or event/contact data integration. |
+| [frontend/src/App.tsx](./frontend/src/App.tsx) | In progress | Retains the existing hero and presents only upcoming-event, contact, and footer content below it. Existing header/hero links to removed Home anchors still need navigation alignment. |
+| [frontend/src/components/HomeContactForm.tsx](./frontend/src/components/HomeContactForm.tsx) | UI implemented; delivery pending | Required name/email/subject/message, optional PDF/JPEG/PNG attachment (10 MB), validation, submission status, and honest failure/email fallback. `/api/contact` does not exist. |
+| [frontend/src/components/FlightPathCanvas.tsx](./frontend/src/components/FlightPathCanvas.tsx) | Implemented | Decorative responsive canvas backdrop for the upcoming-event section. |
+| [frontend/src/App.css](./frontend/src/App.css), [frontend/src/index.css](./frontend/src/index.css) | In progress | Responsive existing hero and Home section styling; contact matches the landing page charcoal/off-white/copper palette and project fonts. |
 | `memory.md` | Active tracker | Update after each project change; do not treat as a detailed task log. |
 
-**Under development:** Phase 1 frontend foundation and Phase 2 homepage shell/hero
-(partial); no backend or production-connected services.
+**Under development:** Phase 1 frontend foundation and Phase 2 Home page
+(partial); event data, contact API, remaining public routes, and backend remain
+unimplemented.
 **Completed implementation phases:** Planning/documentation only.
 
 ## Decisions recorded
@@ -52,18 +54,16 @@ and remaining product features have not started.
   recruit account and no automatic profile workflow email.
 - Capacity: temporarily hold capacity during checkout; duration and expiry
   mechanics remain undecided.
-- Design: 21hrs.space is the primary high-level visual reference for a dark,
-  cinematic aerospace look, oversized display typography, technical labels,
-  framing lines, and scroll-led storytelling. The site should share this
-  visual language without copying its source, wording, media, or unlicensed
-  fonts.
-- Homepage direction: replace the reference moon with a realistic,
-  interactive 360-degree drone model and a live camera/telemetry experience.
-  Pointer/touch drag and keyboard controls, responsive layouts, reduced-motion
-  mode, and WebGL/feed-unavailable fallbacks are required. Owner selected a
-  public live-feed toggle; initial frontend shows unavailable state until
-  hardware/service is provided. Do not simulate the feed or show unapproved
-  telemetry.
+- Design: 21hrs.space informs visual atmosphere and scroll continuity, not
+  the Home content sequence. Home uses charcoal/off-white/copper styling,
+  Space Grotesk, and IBM Plex Mono. See `design.md`.
+- Homepage: Hero → upcoming-event section → contact details/form → footer.
+  Keep Mission, Projects, Journey, Events, and Team off Home. Retain the
+  existing hero. A camera-feed/telemetry toggle is not in the current scope.
+- Contact details: `tseofficial2011@gmail.com`,
+  `linkedin.com/in/soaring-eagles-a7a19831b`, `x.com/TSE_015`, and Soaring
+  Eagles Aeromodelling Lab, Near Mechanical Block, Siddaganga Institute of
+  Technology, Tumkur, 572103.
 - Drone asset: owner approved
   `assets/drone/assault_drone_concept.glb` for use and says it is free to use.
   The Sketchfab listing describes a built-in machine gun/enemy game concept,
@@ -74,16 +74,18 @@ and remaining product features have not started.
   GLB without changing its source geometry or axes. Camera fit uses all visible
   geometry, and model scale is 1.95. Preserve attribution; do not represent it
   as Soaring Eagles' original aircraft design.
-- First implementation scope: responsive frontend first; proposed home story
-  flow from `design.md`; draft club-specific copy for owner review; use approved
-  current logo/assets and propose licensed font/palette alternatives. The
-  featured model/feed toggles between the 3D model and public feed; the first
-  frontend milestone shows an unavailable state until the real feed source is
-  provided. No telemetry until approved.
-- Frontend implementation status: the homepage prototype includes navigation,
-  hero, mission, projects, journey, events/team, and contact CTA sections.
+- Frontend status: Home has the four agreed parts. The existing hero remains
+  unchanged. The upcoming-event section shows an empty state and decorative
+  canvas, but is not connected to published events. The contact form has no
+  backend; it currently reports the unavailable `/api/contact` request and
+  offers the email fallback.
+- Frontend implementation history: earlier versions included mission,
+  projects, journey, events/team, and a live-feed toggle; these are not in the
+  current Home prototype. Home now has the hero, upcoming-event section,
+  contact details/form, and footer.
   Production build and lint pass; browser checks confirmed the 3D canvas loads
-  at mobile and desktop widths, the feed toggle shows the disconnected state,
+  at mobile and desktop widths; the then-existing feed toggle showed the
+  disconnected state and was later removed per owner direction,
   and reduced-motion preference is honored on reload. `npm audit --omit=dev`
   reports no production dependency vulnerabilities. A Three.js deprecation
   warning and a large lazy-loaded 3D chunk remain known optimization items.
@@ -104,8 +106,8 @@ and remaining product features have not started.
   renders with its original GLB axes; latest build/lint pass and desktop/mobile hero checks confirm the
   interactive canvas renders without horizontal overflow. Homepage copy/media
   and production model-license verification remain open.
-- Homepage content: draft copy for owner approval; primary CTA still to be
-  confirmed. Use the proposed section order in `design.md`, pending review.
+- Homepage content: the Home section order and contact details are confirmed.
+  The event area remains an empty state until approved event data is available.
 - Launch: full PRD scope targeted for 15 December 2026; schedule feasibility
   needs an estimate and owner confirmation.
 - Analytics: no analytics or non-essential cookies at launch.
@@ -131,11 +133,9 @@ and remaining product features have not started.
    access policy, and environment separation.
 8. Verify Resend sender-domain authentication and production sending limits.
 9. Approve migrated public content, facts, media, supported browser matrix,
-   visual palette/typography, home-story sequence, and accessibility
-   checklist. Confirm font/model-license records and creator credit.
-10. Identify live camera hardware/service and stream/API; complete public-feed
-    safety/privacy review and approve any telemetry fields before display.
-11. Decide whether the drone should rotate while idle; Three.js/React Three
+   accessibility checklist, and creator-credit records. The Home sequence,
+   palette, and typography are recorded in `design.md`.
+10. Decide whether the drone should rotate while idle; Three.js/React Three
     Fiber is selected for the prototype, but mobile performance and final
     responsive breakpoints still need broader device testing.
 12. Estimate all phases against the launch target using actual team capacity;
