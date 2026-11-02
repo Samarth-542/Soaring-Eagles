@@ -1,16 +1,21 @@
 # Soaring Eagles Website — Architecture
 
-**Status:** Target architecture with a partial frontend prototype
+**Status:** Partially implemented frontend and backend foundation
 **Scope:** New application in `Soaring/`; not a description of the existing root application  
 **Requirements source:** [prd.md](./prd.md)  
 **Reference notes:** [MASTER_PROJECT_GUIDE.md](./MASTER_PROJECT_GUIDE.md)
 
-> A Vite/React/TypeScript frontend prototype exists under `frontend/`; the
-> Spring Boot backend and data-backed public routes have not been implemented.
-> Java 21/Spring Boot 3.x/Maven, Supabase PostgreSQL/Storage, Resend, and
-> Spring Security admin authentication are selected directions. Hosting and
-> payment provider remain open. The frontend's 3D implementation uses Three.js,
-> React Three Fiber, and Drei. A live camera feed is not in the current scope.
+> A Vite/React/TypeScript frontend prototype and Spring Boot backend foundation
+> exist under `frontend/` and `backend/`. The backend includes health checks,
+> default-deny API security, Flyway, and local H2/Supabase PostgreSQL profiles;
+> cookie-based admin session settings and exact-origin credentialed CORS are
+> configured, but data-backed public routes and admin authentication have not
+> been implemented.
+> Java 21/Spring Boot 3.x/Maven, Supabase PostgreSQL/Storage, Resend, and Spring
+> Security admin authentication are selected directions. Hosting and payment
+> provider remain open. The frontend's 3D implementation uses Three.js, React
+> Three Fiber, and Drei; React Router 7 is selected for client-side routes. A
+> live camera feed is not in the current scope.
 
 ## 1. Goals and boundaries
 
@@ -71,6 +76,7 @@ transactional email. Hosting/domain and payment provider remain open.
 |---|---|---|
 | Frontend | Vite, React, TypeScript | Public pages and admin UI in a single-page app; frontend communicates with the backend over HTTP and does not own privileged operations. |
 | UI and styles | Current prototype: React components and project CSS (`App.css`, `index.css`); no Tailwind dependency | Continue the existing charcoal/off-white/copper theme and Space Grotesk/IBM Plex Mono typography. A future component system remains to be selected if needed. |
+| Frontend routing | React Router 7 | Client-side public routes, starting with Home and the separate Team page. |
 | Forms and validation | Current contact form uses native React form controls and client-side validation; no backend validation exists yet | Keep accessible submission/error states and add server-side validation with the future API. A shared form library is not selected. |
 | Backend API | Java 21, Spring Boot 3.x, Spring Web, Maven | Modular monolith owning business rules, server-side validation, authorization, and integrations. |
 | Persistence | PostgreSQL hosted by Supabase; Spring Data JPA; Flyway migrations | Relational records fit events, registrations, teams, profiles, content, and contact histories. |
@@ -115,7 +121,7 @@ flowchart TD
 
 - **Frontend application:** Render accessible pages and forms. The current
   Home prototype is hero → upcoming-event empty state → contact details/form →
-  footer, with native document scrolling and a decorative event canvas. It
+  footer, with native document scrolling and a decorative CSS grid with a radial vignette in the event section. It
   calls the Spring Boot API and does not connect directly to privileged
   database, payment, or email credentials. The contact API and event-data
   connection do not exist yet; a live aircraft feed is not part of the current
@@ -143,16 +149,18 @@ by the Spring Boot backend.
 ### 4.1 Public browsing
 
 1. In the current prototype, a visitor scrolls from the existing hero to an
-   upcoming-event empty state with a decorative canvas, then to the contact
+   upcoming-event empty state with a decorative CSS grid and radial vignette, then to the contact
    details and form, and finally the footer. The form submission is not
    connected to a backend; it reports the failure and provides an email
    fallback.
 2. The intended full site has separate About, Team, Projects, Events, Journey,
-   and Contact routes; these routes are not implemented in the prototype.
-   Existing header/hero links still target removed homepage anchors and need
-   alignment with the eventual navigation/routes.
-3. Public page loaders will request only published content. Team queries include
-   approved profiles only and group them by study year.
+   and Contact routes. Home and the first Team route are implemented; the
+   remaining public routes are not implemented.
+   The current header links to implemented Home sections and the Team route.
+3. Public page loaders will request only published content. The initial Team
+   page roster is a static migration of public fields from the previous site;
+   future backend-backed Team queries must include approved profiles only and
+   group them by study year.
 4. If there are no upcoming events or approved profiles, pages render designed
    empty states rather than failing.
 
@@ -276,13 +284,14 @@ and ownership.
 
 ## 7. Proposed folder and file structure
 
-This is the target structure; the complete layout does not exist yet. The
-current frontend prototype is a Vite app under `frontend/`, with its Home
-composition in `src/App.tsx`, styling in `src/App.css`/`src/index.css`, and
-shared visual components in `src/components/`. The `backend/` application and
-planned feature routes do not exist yet. Keep the existing `assets/` library
-and copy approved assets into frontend public or managed-media locations as
-implementation proceeds.
+This is the target structure; public/admin feature routes and backend domain
+modules remain future work. The frontend is a Vite app under `frontend/`, with
+its Home composition in `src/App.tsx`, styling in `src/App.css`/`src/index.css`,
+and shared visual components in `src/components/`. The `backend/` foundation
+now exists with its application entry point, security/error configuration,
+local and Supabase database profiles, Flyway baseline, and tests. Keep the
+existing `assets/` library and copy approved assets into frontend public or
+managed-media locations as implementation proceeds.
 
 ```text
 Soaring/
@@ -337,25 +346,22 @@ Soaring/
   backend/
     src/
       main/
-        java/<package>/
+        java/in/soaringeagles/api/
           SoaringEaglesApplication.java
           config/
           security/
-          common/
-          events/
-          registrations/
-          profiles/
-          projects/
-          journey/
-          contacts/
-          admin/
-          integrations/
+          common/error/
+          [feature modules added with their implementation]
         resources/
           application.yml
+          application-local.yml
+          application-supabase.yml
           db/migration/
       test/
-        java/<package>/
-    pom.xml or build.gradle
+        java/in/soaringeagles/api/
+        resources/application-test.yml
+    pom.xml
+    mvnw.cmd
     .env.example
   .env.example
   .gitignore
@@ -364,8 +370,11 @@ Soaring/
 
 Spring controllers expose REST endpoints; feature services own business rules;
 repositories use Spring Data JPA; Flyway migrations define schema changes.
-Spring Security guards private endpoints. Payment webhooks, uploads, and email
-integrations are implemented in backend modules. Frontend components handle
+Spring Security guards private endpoints and uses server-side browser sessions
+with HttpOnly, SameSite cookies and CSRF protection. Credentialed CORS must be
+limited to exact frontend origins. Production session persistence is not yet
+configured. Payment webhooks, uploads, and email integrations are implemented
+in backend modules. Frontend components handle
 interaction and presentation, not authorization or payment verification. Keep
 feature-specific rules close to their feature and share only genuinely common
 UI, validation, and server utilities.

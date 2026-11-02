@@ -1,9 +1,15 @@
-import { lazy, Suspense, useCallback, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef } from 'react'
 import type { Group } from 'three'
+import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
-import FlightPathCanvas from './components/FlightPathCanvas'
+import GridVignetteBackground from './components/GridVignetteBackground'
 import HeroIntroOverlay from './components/HeroIntroOverlay'
 import HomeContactForm from './components/HomeContactForm'
+import SiteHeader from './components/SiteHeader'
+import EventsPage from './pages/EventsPage'
+import OurJourneyPage from './pages/OurJourneyPage'
+import ProjectsPage from './pages/ProjectsPage'
+import TeamPage from './pages/TeamPage'
 import { useHeroReveal } from './components/HeroReveal'
 
 const DroneExperience = lazy(() => import('./DroneExperience'))
@@ -16,7 +22,7 @@ function DroneExperienceLoader({ onModelReady }: { onModelReady: (model?: Group,
   )
 }
 
-function App() {
+function HomePage() {
   const headerRef = useRef<HTMLElement>(null)
   const heroRef = useRef<HTMLElement>(null)
   const { overlayRef, introDismissed, startReveal } = useHeroReveal(heroRef, headerRef)
@@ -26,20 +32,7 @@ function App() {
 
   return (
     <>
-      <header className="site-header" ref={headerRef}>
-        <a className="brand" href="#home" aria-label="Soaring Eagles home" data-reveal="header">
-          <img src="/images/brand/club-logo.png" alt="" />
-          <span>SOARING<br />EAGLES</span>
-        </a>
-        <nav className="main-nav" aria-label="Main navigation" data-reveal="header">
-          <a href="#mission">MISSION</a>
-          <a href="#projects">PROJECTS</a>
-          <a href="#journey">JOURNEY</a>
-          <a href="#events">EVENTS</a>
-          <a href="#team">TEAM</a>
-        </nav>
-        <a className="header-cta" href="#team" data-reveal="header">JOIN THE FLIGHT <span aria-hidden="true">↗</span></a>
-      </header>
+      <SiteHeader ref={headerRef} reveal />
 
       <main>
         <section className="hero-section framed-section" id="home" aria-labelledby="hero-title" ref={heroRef}>
@@ -66,13 +59,13 @@ function App() {
           </div>
         <div className="hero-bottom" data-reveal="interface">
             <span>STUDENT-LED · ENGINEERED TO FLY</span>
-            <a href="#mission">SCROLL TO EXPLORE <span aria-hidden="true">↓</span></a>
+            <a href="#events">SCROLL TO EXPLORE <span aria-hidden="true">↓</span></a>
             <span>13.34° N / 77.10° E</span>
           </div>
         </section>
 
         <section className="upcoming-section content-section" id="events" aria-labelledby="upcoming-title">
-          <FlightPathCanvas />
+          <GridVignetteBackground />
           <div className="section-heading">
             <div>
               <div className="section-index">01 / WHAT'S NEXT</div>
@@ -91,7 +84,7 @@ function App() {
               <h3>No upcoming events announced</h3>
               <p>There are no upcoming events to share right now. Check back for the next Soaring Eagles announcement.</p>
             </div>
-            <a className="upcoming-card-link" href="#contact">ASK US ABOUT EVENTS <span aria-hidden="true">↗</span></a>
+            <Link className="upcoming-card-link" to="/events">EXPLORE EVENT ARCHIVE <span aria-hidden="true">↗</span></Link>
           </div>
         </section>
 
@@ -133,10 +126,10 @@ function App() {
       </main>
 
       <footer className="site-footer">
-        <a className="brand" href="#home" aria-label="Back to Soaring Eagles home">
+        <Link className="brand" to="/" aria-label="Back to Soaring Eagles home">
           <img src="/images/brand/club-logo.png" alt="" />
           <span>SOARING<br />EAGLES</span>
-        </a>
+        </Link>
         <span>STUDENT AERODESIGN & AERIAL ROBOTICS · TUMAKURU, INDIA</span>
         <span className="model-credit">
           3D concept by <a href="https://sketchfab.com/Diamonddogkz" target="_blank" rel="noreferrer">Diamonddogkz</a> · Sketchfab
@@ -145,6 +138,37 @@ function App() {
       </footer>
       {!introDismissed && <HeroIntroOverlay overlayRef={overlayRef} />}
     </>
+  )
+}
+
+function ScrollToTop() {
+  const { pathname, hash } = useLocation()
+
+  useEffect(() => {
+    if (hash) {
+      document.getElementById(hash.slice(1))?.scrollIntoView()
+      return
+    }
+
+    window.scrollTo(0, 0)
+  }, [hash, pathname])
+
+  return null
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/our-journey" element={<OurJourneyPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/team" element={<TeamPage />} />
+        <Route path="*" element={<main className="team-main"><h1>Page not found</h1><Link to="/">Back home</Link></main>} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

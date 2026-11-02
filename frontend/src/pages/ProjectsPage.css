@@ -1,0 +1,328 @@
+.projects-page {
+  min-height: 100vh;
+  background: #0b0d0e;
+}
+
+.projects-main {
+  width: 100%;
+  margin: 0;
+  padding: clamp(3rem, 7vw, 6rem) clamp(1.25rem, 4vw, 3.5rem) 5rem;
+}
+
+.projects-intro {
+  display: flex;
+  min-height: min(48vh, 30rem);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1rem 0 4rem;
+}
+
+.projects-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+.projects-kicker span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.projects-intro h1 {
+  margin: 0;
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: clamp(3.75rem, 9vw, 7.5rem);
+  font-weight: 600;
+  letter-spacing: -0.075em;
+  line-height: 0.92;
+}
+
+.projects-intro h1 em,
+.projects-directory-heading h2 em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.projects-intro-copy {
+  max-width: 35rem;
+  margin: 1.5rem 0 0;
+  color: var(--paper-dim);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.7;
+}
+
+.projects-directory {
+  padding-top: clamp(2.5rem, 5vw, 4rem);
+  border-top: 1px solid var(--line);
+}
+
+.projects-directory-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.projects-directory-heading h2 {
+  margin: 0;
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+}
+
+.projects-timeline-label {
+  margin: 0 0 0.65rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+}
+
+.projects-directory-heading p {
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.project-timeline {
+  position: relative;
+}
+
+.project-timeline-list {
+  display: grid;
+  gap: 2rem;
+  margin: 0;
+  padding: 1rem 0 0;
+  list-style: none;
+}
+
+.project-timeline-track,
+.project-timeline-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.project-timeline-track {
+  background: rgba(245, 240, 233, 0.16);
+}
+
+.project-timeline-progress {
+  z-index: 1;
+  background: var(--accent);
+  box-shadow: 0 0 1rem rgba(221, 151, 107, 0.45);
+  transform: translateX(-50%) scaleY(0);
+  transform-origin: top;
+}
+
+.project-timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  padding-bottom: 2.5rem;
+}
+
+.project-timeline-item--left .project-timeline-card {
+  grid-column: 1;
+}
+
+.project-timeline-item--right .project-timeline-card {
+  grid-column: 3;
+}
+
+.project-timeline-marker {
+  position: absolute;
+  z-index: 2;
+  top: 2.5rem;
+  left: 50%;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--background);
+  box-shadow: 0 0 0 0.4rem #0b0d0e;
+  transform: translateX(-50%);
+}
+
+.project-timeline-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(245, 240, 233, 0.12);
+  border-radius: 0.85rem;
+  background: #121516;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.project-timeline-card:hover {
+  border-color: rgba(221, 151, 107, 0.55);
+  background: #161a1b;
+}
+
+.project-timeline-image {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: #1b1e1f;
+}
+
+.project-timeline-image::after {
+  position: absolute;
+  inset: 45% 0 0;
+  background: linear-gradient(180deg, transparent, rgba(8, 9, 10, 0.72));
+  content: "";
+  pointer-events: none;
+}
+
+.project-timeline-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 350ms ease;
+}
+
+.project-timeline-card:hover .project-timeline-image img {
+  transform: scale(1.035);
+}
+
+.project-timeline-index,
+.project-timeline-year {
+  position: absolute;
+  z-index: 1;
+  bottom: 1rem;
+  color: var(--paper);
+  font-family: var(--font-mono);
+}
+
+.project-timeline-index {
+  left: 1.25rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.project-timeline-year {
+  right: 1.25rem;
+  font-size: 0.85rem;
+}
+
+.project-timeline-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+}
+
+.project-timeline-content h3 {
+  margin: 0;
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.project-timeline-content > p {
+  margin: 0.9rem 0 1.25rem;
+  color: var(--paper-dim);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.project-timeline-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-timeline-tags li {
+  border: 1px solid rgba(221, 151, 107, 0.25);
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  color: var(--paper-dim);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.projects-footer {
+  margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-timeline-card,
+  .project-timeline-image img {
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .projects-main {
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  .projects-intro {
+    min-height: 42vh;
+    padding: 1.5rem 0 3rem;
+  }
+
+  .projects-directory-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .project-timeline-list {
+    gap: 1rem;
+    padding-left: 2.5rem;
+  }
+
+  .project-timeline-track,
+  .project-timeline-progress {
+    left: 0.55rem;
+  }
+
+  .project-timeline-item {
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: 1rem;
+  }
+
+  .project-timeline-item--left .project-timeline-card,
+  .project-timeline-item--right .project-timeline-card {
+    grid-column: 1;
+  }
+
+  .project-timeline-marker {
+    top: 2rem;
+    left: -1.95rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .projects-intro h1 {
+    font-size: clamp(3.4rem, 17vw, 4.25rem);
+  }
+}

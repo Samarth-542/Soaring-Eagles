@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: soaring-eagles-api
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    validate-on-migrate: true
+  mvc:
+    problemdetails:
+      enabled: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+  servlet:
+    session:
+      cookie:
+        name: SOARING_SESSION
+        http-only: true
+        secure: true
+        same-site: lax
+      tracking-modes:
+        - cookie
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
