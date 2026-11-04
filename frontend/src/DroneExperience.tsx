@@ -8,6 +8,7 @@ import useReducedMotion from './hooks/useReducedMotion'
 
 const modelPath = '/models/assault_drone_concept.glb'
 const modelScale = 1.95
+const defaultDronePitch = -0.22
 type OnModelReady = (model?: Group, riseDistance?: number) => void
 const viewDirection = new Vector3(0, 0.3, 1).normalize()
 const viewUp = new Vector3(0, 1, 0)
@@ -30,7 +31,9 @@ function Model({
   const { camera, size } = useThree()
   const hasReportedReady = useRef(false)
   const model = useMemo(() => {
-    return scene.clone(true)
+    const clone = scene.clone(true)
+    clone.rotation.x = defaultDronePitch
+    return clone
   }, [scene])
   const bounds = useMemo(() => {
     model.updateMatrixWorld(true)
@@ -95,7 +98,12 @@ function Model({
     const drone = modelRef.current
     if (!drone) return
 
-    drone.rotation.x = MathUtils.damp(drone.rotation.x, -pointerPosition.current.y * 0.18, 6, delta)
+    drone.rotation.x = MathUtils.damp(
+      drone.rotation.x,
+      defaultDronePitch + pointerPosition.current.y * 0.18,
+      6,
+      delta,
+    )
     drone.rotation.y = MathUtils.damp(
       drone.rotation.y,
       rotationOffset.current.y + pointerPosition.current.x * 0.32,

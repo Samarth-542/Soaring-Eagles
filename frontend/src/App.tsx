@@ -83,6 +83,9 @@ function HomePage() {
         <div className="hero-meta hero-meta-left" data-reveal="support">
             <span>OUR FIELD</span>
             <strong>AEROSPACE<br />ENGINEERING</strong>
+            <div className="hero-copy">
+              <p>We design, build, and fly ideas into reality.</p>
+            </div>
           </div>
         <div className="hero-meta hero-meta-right" data-reveal="support">
             <span>BASED IN</span>
@@ -91,9 +94,6 @@ function HomePage() {
 
         <DroneExperienceLoader onModelReady={handleModelReady} pointerTarget={heroRef} />
 
-        <div className="hero-copy" data-reveal="support">
-            <p>We design, build, and fly ideas into reality.</p>
-          </div>
         <div className="hero-bottom" data-reveal="interface">
             <span>STUDENT-LED · ENGINEERED TO FLY</span>
             <a href="#events">SCROLL TO EXPLORE <span aria-hidden="true">↓</span></a>
