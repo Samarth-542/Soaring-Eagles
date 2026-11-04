@@ -1,7 +1,7 @@
 # Soaring Eagles Website — Design Direction
 
 **Status:** Updated to current owner decisions and homepage prototype
-**Scope:** Site-wide visual language, interactive home hero, event and contact sections
+**Scope:** Site-wide visual language, interactive home hero, Team page, event and contact sections
 **Requirements:** [prd.md](./prd.md)  
 **Architecture:** [architecture.md](./architecture.md)  
 **Reference asset notes:** [assets/README.md](./assets/README.md)
@@ -285,9 +285,20 @@ layouts and supported device/browser requirements.
   transition has not been implemented below the hero.
 - The upcoming-event section currently shows an honest “no upcoming events”
   state. It is not yet connected to published event data.
-- The event section has a decorative, static canvas with subtle flight paths,
-  orbit contours, points, and atmospheric glow. It is background-only,
-  responsive, and must not interfere with content or pointer input.
+- The upcoming-event section has a subtle CSS grid with a radial vignette,
+  adapted from the owner-provided design. It is scoped to the section, remains
+  behind the content, and must not interfere with pointer input.
+- The separate `/team` page uses the site's dark aerospace palette with simple,
+  spacious portrait cards and a responsive, left-aligned grid. Avoid layered
+  glass effects, excess labels, and decorative card overlays.
+  Its directory order is Faculty Coordinators, Alumni, then 4th, 3rd, 2nd, and
+  1st Year. The public roster and portraits are carried over from the previous
+  site's static roster and profiles currently shown in its public directory;
+  year labels follow its current-year roster mapping. Keep email addresses and
+  phone numbers private. Future public cards may show
+  approved names, photos, study year, department, interests, and social links
+  only. Use working, keyboard-accessible social links and respect
+  reduced-motion preferences.
 - The contact area presents the confirmed email, LinkedIn, X, and Tumakuru
   location beside the form. Match the Home charcoal/off-white/copper palette
   and Space Grotesk/IBM Plex Mono typography.
@@ -313,8 +324,8 @@ layouts and supported device/browser requirements.
 > should not be made into a live-feed toggle. Keep all content and actions in
 > semantic HTML and the 3D model informative, never a navigation barrier. Below
 > the hero, show only the upcoming-event section, the contact-information card
-> and contact form, then the footer. The event section may use a subtle,
-> decorative canvas backdrop. Use the reference for scroll continuity and
+> and contact form, then the footer. The event section uses a subtle CSS grid
+> with a radial vignette. Use the reference for scroll continuity and
 > atmosphere, not its exact flow. Adapt the composition for phones, tablets,
 > and desktops; use the existing Space Grotesk/IBM Plex Mono fonts and
 > charcoal/off-white/copper theme. Use only approved public club facts and

@@ -92,9 +92,8 @@ PostgreSQL through its backend persistence layer.
 1. **Frontend:** Vite + React + TypeScript SPA; use a separate HTTP API client
    for Spring Boot REST endpoints.
 2. **Styling, routing, and forms:** The current prototype uses project CSS,
-   native React form controls, Space Grotesk, and IBM Plex Mono. No frontend
-   router or form library is selected; validate all requests again in Spring
-   Boot.
+   React Router 7, native React form controls, Space Grotesk, and IBM Plex Mono.
+   No form library is selected; validate all requests again in Spring Boot.
 3. **Backend:** Java 21 + Spring Boot 3.x + Maven, organized as a modular
    monolith. Spring Web, Spring Security, Spring Data JPA, and Bean Validation
    are the planned building blocks.

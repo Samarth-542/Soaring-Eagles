@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: soaring-eagles-api
+  config:
+    import: optional:file:.env[.properties]
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    validate-on-migrate: true
+  session:
+    store-type: jdbc
+    timeout: 30m
+    jdbc:
+      initialize-schema: never
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+  mvc:
+    problemdetails:
+      enabled: true
+  jackson:
+    deserialization:
+      adjust-dates-to-context-time-zone: false
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        name: SOARING_SESSION
+        http-only: true
+        secure: true
+        same-site: ${APP_SESSION_COOKIE_SAME_SITE:lax}
+      tracking-modes:
+        - cookie
+
+app:
+  registration:
+    hold-duration: ${APP_REGISTRATION_HOLD_DURATION:PT10M}
+    expiration-scan-ms: ${APP_REGISTRATION_EXPIRATION_SCAN_MS:30000}
+  payment:
+    razorpay:
+      key-id: ${RAZORPAY_KEY_ID:}
+      key-secret: ${RAZORPAY_KEY_SECRET:}
+      webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+      api-base-url: ${RAZORPAY_API_BASE_URL:https://api.razorpay.com/v1}
+      checkout-enabled: ${APP_PAYMENT_ENABLED:false}
+  email:
+    resend:
+      api-key: ${RESEND_API_KEY:}
+      from-address: ${RESEND_FROM_ADDRESS:}
+      api-base-url: ${RESEND_API_BASE_URL:https://api.resend.com}
+      dispatch-delay-ms: ${RESEND_DISPATCH_DELAY_MS:30000}
+  admin:
+    email: ${APP_ADMIN_EMAIL:admin@soaringeagles.in}
+    password-hash: ${APP_ADMIN_PASSWORD_HASH:}
+  supabase:
+    storage:
+      url: ${SUPABASE_URL:}
+      service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+      public-bucket: ${SUPABASE_STORAGE_PUBLIC_BUCKET:se_data}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true

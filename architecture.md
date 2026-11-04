@@ -1,16 +1,24 @@
 # Soaring Eagles Website — Architecture
 
-**Status:** Target architecture with a partial frontend prototype
+**Status:** Partially implemented frontend and backend foundation
 **Scope:** New application in `Soaring/`; not a description of the existing root application  
 **Requirements source:** [prd.md](./prd.md)  
 **Reference notes:** [MASTER_PROJECT_GUIDE.md](./MASTER_PROJECT_GUIDE.md)
 
-> A Vite/React/TypeScript frontend prototype exists under `frontend/`; the
-> Spring Boot backend and data-backed public routes have not been implemented.
-> Java 21/Spring Boot 3.x/Maven, Supabase PostgreSQL/Storage, Resend, and
-> Spring Security admin authentication are selected directions. Hosting and
-> payment provider remain open. The frontend's 3D implementation uses Three.js,
-> React Three Fiber, and Drei. A live camera feed is not in the current scope.
+> The Vite/React/TypeScript frontend and Spring Boot backend are implemented
+> under `frontend/` and `backend/`. Backend health checks, Flyway, local
+> H2/Supabase PostgreSQL profiles, cookie-based admin sign-in, CSRF,
+> JDBC-backed sessions, initial-admin configuration, login throttling, and
+> exact-origin credentialed CORS are implemented. Event and registration APIs
+> and their authenticated admin workflows are connected. Password reset,
+> account lifecycle, and the other content/admin modules remain pending.
+> Razorpay is the selected INR payment provider; paid checkout is disabled by
+> default pending sandbox verification. Checkout holds last 10 minutes.
+> Resend's delivery outbox is implemented, but sender credentials and live
+> delivery remain unverified. Hosting/domain remain open. The frontend's 3D
+> implementation uses Three.js, React Three Fiber, and Drei; React Router 7 is
+> selected for client-side routes. A live camera feed is not in the current
+> scope.
 
 ## 1. Goals and boundaries
 
@@ -60,17 +68,22 @@ used by the new application.
 
 The selected direction is a Vite/React frontend with a separate Java 21,
 Spring Boot 3.x modular-monolith backend built with Maven, and PostgreSQL
-hosted by Supabase. The implementation sequence is frontend-first. Admin authentication uses Spring Security with
-username/password and managed credentials; password-only is the selected
-launch policy, with email as the unique admin identifier and verified-email
-password reset. Prevent deletion of the last active admin and confirm
+hosted by Supabase. The implementation sequence is frontend-first. Admin
+authentication uses Spring Security with username/password and managed
+credentials; password-only is the selected launch policy, with email as the
+unique admin identifier and verified-email password reset. The initial admin
+is provisioned from server-only configuration and sessions are stored in the
+application database. Prevent deletion of the last active admin and confirm
 self-removal. Supabase Storage and Resend are selected for files and
-transactional email. Hosting/domain and payment provider remain open.
+transactional email. Razorpay is selected for payments; the sandbox/test
+configuration must be verified before paid checkout is enabled. Hosting/domain
+remain open.
 
 | Area | Proposed technology | Rationale / boundary |
 |---|---|---|
 | Frontend | Vite, React, TypeScript | Public pages and admin UI in a single-page app; frontend communicates with the backend over HTTP and does not own privileged operations. |
 | UI and styles | Current prototype: React components and project CSS (`App.css`, `index.css`); no Tailwind dependency | Continue the existing charcoal/off-white/copper theme and Space Grotesk/IBM Plex Mono typography. A future component system remains to be selected if needed. |
+| Frontend routing | React Router 7 | Client-side public routes, starting with Home and the separate Team page. |
 | Forms and validation | Current contact form uses native React form controls and client-side validation; no backend validation exists yet | Keep accessible submission/error states and add server-side validation with the future API. A shared form library is not selected. |
 | Backend API | Java 21, Spring Boot 3.x, Spring Web, Maven | Modular monolith owning business rules, server-side validation, authorization, and integrations. |
 | Persistence | PostgreSQL hosted by Supabase; Spring Data JPA; Flyway migrations | Relational records fit events, registrations, teams, profiles, content, and contact histories. |
@@ -78,7 +91,7 @@ transactional email. Hosting/domain and payment provider remain open.
 | File storage | Supabase Storage | Keep pending profile images and contact attachments private; publish approved public media deliberately. |
 | 3D hero | Three.js with React Three Fiber and Drei; GSAP is present in the existing frontend | Render the approved GLB interactively and honor reduced-motion preferences. |
 | Live drone feed | Not included in the current scope | Do not add a feed toggle or imply a live stream is available. Revisit only as a separately approved feature. |
-| Payments | Provider-neutral integration; INR payment provider undecided | Verify payment status on the backend using authenticated provider callbacks/webhooks. |
+| Payments | Razorpay integration with server-created INR orders and signed webhooks | Payment is confirmed only from a verified webhook; paid checkout remains disabled until sandbox verification. |
 | Email | Resend, through a server-side adapter | Contact notifications/replies and event confirmations; no automatic member-profile emails. |
 | Testing and quality | TypeScript checks and ESLint for frontend; JUnit/Spring tests for backend; browser tests for critical flows | GitHub pull requests, automated CI, and preview deployments are selected. |
 | Hosting | Separate frontend and Spring Boot hosting; prefer existing domain if available | Hosting provider and domain availability remain undecided. |
@@ -113,13 +126,13 @@ flowchart TD
 
 ### Responsibilities
 
-- **Frontend application:** Render accessible pages and forms. The current
-  Home prototype is hero → upcoming-event empty state → contact details/form →
-  footer, with native document scrolling and a decorative event canvas. It
-  calls the Spring Boot API and does not connect directly to privileged
-  database, payment, or email credentials. The contact API and event-data
-  connection do not exist yet; a live aircraft feed is not part of the current
-  homepage.
+- **Frontend application:** Render accessible pages and forms. Home is hero →
+  data-backed upcoming event → contact details/form → footer, with native
+  document scrolling and a decorative CSS grid with a radial vignette in the
+  event section. It calls the Spring Boot API and does not connect directly to
+  privileged database, payment, or email credentials. Event publishing and
+  public reads are implemented; the contact API is not. A live aircraft feed
+  is not part of the current homepage.
 - **Admin application:** Present management workflows only after sign-in. UI
   visibility is not an authorization control.
 - **Spring Boot API:** Validate requests, establish the caller's identity and
@@ -142,17 +155,18 @@ by the Spring Boot backend.
 
 ### 4.1 Public browsing
 
-1. In the current prototype, a visitor scrolls from the existing hero to an
-   upcoming-event empty state with a decorative canvas, then to the contact
-   details and form, and finally the footer. The form submission is not
+1. A visitor scrolls from the existing hero to published upcoming-event
+   information (or an explicit loading, failure, or empty state), then to the
+   contact details and form, and finally the footer. The contact form is not
    connected to a backend; it reports the failure and provides an email
    fallback.
-2. The intended full site has separate About, Team, Projects, Events, Journey,
-   and Contact routes; these routes are not implemented in the prototype.
-   Existing header/hero links still target removed homepage anchors and need
-   alignment with the eventual navigation/routes.
-3. Public page loaders will request only published content. Team queries include
-   approved profiles only and group them by study year.
+2. Home, Team, Projects, Journey, and Events routes are implemented. The
+   separate About and Contact routes and data-backed Team/Projects/Journey
+   content remain pending.
+3. Public event loaders request only published or already-scheduled content.
+   The initial Team page roster is a static migration of public fields from
+   the previous site; future backend-backed Team queries must include approved
+   profiles only and group them by study year.
 4. If there are no upcoming events or approved profiles, pages render designed
    empty states rather than failing.
 
@@ -176,7 +190,8 @@ by the Spring Boot backend.
    registration remains unconfirmed and the visitor can retry.
 7. Capacity enforcement must be atomic so concurrent checkouts cannot exceed
    the configured limit. A temporary hold during checkout is selected; hold
-   duration and expiry mechanics remain to be decided with the payment provider.
+   duration is 10 minutes. Expired holds release capacity; the service uses an
+   event lock for reservation serialization.
 
 ### 4.3 Admin event and content management
 
@@ -276,13 +291,14 @@ and ownership.
 
 ## 7. Proposed folder and file structure
 
-This is the target structure; the complete layout does not exist yet. The
-current frontend prototype is a Vite app under `frontend/`, with its Home
-composition in `src/App.tsx`, styling in `src/App.css`/`src/index.css`, and
-shared visual components in `src/components/`. The `backend/` application and
-planned feature routes do not exist yet. Keep the existing `assets/` library
-and copy approved assets into frontend public or managed-media locations as
-implementation proceeds.
+This is the target structure; public/admin feature routes and backend domain
+modules remain future work. The frontend is a Vite app under `frontend/`, with
+its Home composition in `src/App.tsx`, styling in `src/App.css`/`src/index.css`,
+and shared visual components in `src/components/`. The `backend/` foundation
+now exists with its application entry point, security/error configuration,
+local and Supabase database profiles, Flyway baseline, and tests. Keep the
+existing `assets/` library and copy approved assets into frontend public or
+managed-media locations as implementation proceeds.
 
 ```text
 Soaring/
@@ -337,25 +353,22 @@ Soaring/
   backend/
     src/
       main/
-        java/<package>/
+        java/in/soaringeagles/api/
           SoaringEaglesApplication.java
           config/
           security/
-          common/
-          events/
-          registrations/
-          profiles/
-          projects/
-          journey/
-          contacts/
-          admin/
-          integrations/
+          common/error/
+          [feature modules added with their implementation]
         resources/
           application.yml
+          application-local.yml
+          application-supabase.yml
           db/migration/
       test/
-        java/<package>/
-    pom.xml or build.gradle
+        java/in/soaringeagles/api/
+        resources/application-test.yml
+    pom.xml
+    mvnw.cmd
     .env.example
   .env.example
   .gitignore
@@ -364,7 +377,10 @@ Soaring/
 
 Spring controllers expose REST endpoints; feature services own business rules;
 repositories use Spring Data JPA; Flyway migrations define schema changes.
-Spring Security guards private endpoints. Payment webhooks, uploads, and email
+Spring Security guards private endpoints and uses server-side browser sessions
+with HttpOnly, SameSite cookies and CSRF protection. Credentialed CORS must be
+limited to exact frontend origins. JDBC-backed HTTP sessions are configured
+and persisted by Flyway-managed tables. Payment webhooks, uploads, and email
 integrations are implemented in backend modules. Frontend components handle
 interaction and presentation, not authorization or payment verification. Keep
 feature-specific rules close to their feature and share only genuinely common
@@ -383,6 +399,13 @@ UI, validation, and server utilities.
   confirmation and event limits.
 - Keep provider secrets in the deployment secret store, never in source control
   or client bundles.
+- Initial admin credentials are provisioned only through `APP_ADMIN_EMAIL` and
+  a BCrypt hash in `APP_ADMIN_PASSWORD_HASH`; startup fails if either value is
+  missing or invalid. Never place the plaintext password in application
+  configuration.
+- Login throttling permits five failed attempts per email or source IP in a
+  15-minute window, then locks that key for 15 minutes. The current limiter is
+  process-local; use one backend instance until a shared limiter is configured.
 - Record admin audit events for elevated and destructive actions. Since every
   admin may add/remove admins, require strong authentication and prevent
   accidental removal of the last usable administrator; exact policy requires
@@ -429,9 +452,11 @@ publication.
 The architecture can be refined after the owner confirms the PRD decisions:
 
 1. Frontend/backend hosting and existing domain availability.
-2. INR payment provider and provider-specific payment/receipt requirements.
-3. Admin password reset, lockout, and credential-management implementation;
-   password-only is the selected launch policy.
+2. Razorpay sandbox/public-webhook verification, production payment enablement,
+   and any provider-specific receipt or tax requirements.
+3. Verified-email password reset and credential-management implementation;
+   password-only is the selected launch policy. The initial login throttle
+   policy is documented above.
 4. How selected recruits receive and manually rotate the shared secret link.
 5. Data retention periods for registrations, contacts, payments, and rejected
    profiles.

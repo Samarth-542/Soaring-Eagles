@@ -1,8 +1,8 @@
 import { Component, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import type { ErrorInfo, ReactNode, RefObject } from 'react'
+import type { ErrorInfo, MutableRefObject, ReactNode, RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html, OrbitControls, useGLTF } from '@react-three/drei'
-import { Box3, Mesh, PerspectiveCamera, Vector3 } from 'three'
+import { Box3, MathUtils, Mesh, PerspectiveCamera, Vector2, Vector3 } from 'three'
 import type { Group } from 'three'
 import useReducedMotion from './hooks/useReducedMotion'
 
@@ -17,9 +17,13 @@ const viewRight = new Vector3().crossVectors(viewUp, viewDirection).normalize()
 
 function Model({
   modelRef,
+  pointerPosition,
+  rotationOffset,
   onModelReady,
 }: {
   modelRef: RefObject<Group | null>
+  pointerPosition: MutableRefObject<Vector2>
+  rotationOffset: MutableRefObject<Vector2>
   onModelReady: (model: Group, riseDistance: number) => void
 }) {
   const { scene } = useGLTF(modelPath)
@@ -87,6 +91,19 @@ function Model({
     onModelReady(model, frame.visibleHeight * 0.72)
   })
 
+  useFrame((_, delta) => {
+    const drone = modelRef.current
+    if (!drone) return
+
+    drone.rotation.x = MathUtils.damp(drone.rotation.x, -pointerPosition.current.y * 0.18, 6, delta)
+    drone.rotation.y = MathUtils.damp(
+      drone.rotation.y,
+      rotationOffset.current.y + pointerPosition.current.x * 0.32,
+      6,
+      delta,
+    )
+  })
+
   return (
     <primitive
       ref={modelRef}
@@ -103,10 +120,14 @@ function Model({
 
 function Scene({
   modelRef,
+  pointerPosition,
+  rotationOffset,
   reducedMotion,
   onModelReady,
 }: {
   modelRef: RefObject<Group | null>
+  pointerPosition: MutableRefObject<Vector2>
+  rotationOffset: MutableRefObject<Vector2>
   reducedMotion: boolean
   onModelReady: (model: Group, riseDistance: number) => void
 }) {
@@ -117,7 +138,12 @@ function Scene({
       <directionalLight position={[-5, 1, -3]} intensity={2.8} color="#83c9e8" />
       <spotLight position={[0, 5, -4]} intensity={18} angle={0.65} penumbra={1} />
       <Suspense fallback={<Html center><span className="scene-loading">PREPARING AIRCRAFT</span></Html>}>
-        <Model modelRef={modelRef} onModelReady={onModelReady} />
+        <Model
+          modelRef={modelRef}
+          pointerPosition={pointerPosition}
+          rotationOffset={rotationOffset}
+          onModelReady={onModelReady}
+        />
       </Suspense>
       <OrbitControls
         enablePan={false}
@@ -153,11 +179,44 @@ class SceneErrorBoundary extends Component<{
   }
 }
 
-export default function DroneExperience({ onModelReady }: { onModelReady: OnModelReady }) {
+export default function DroneExperience({
+  onModelReady,
+  pointerTarget,
+}: {
+  onModelReady: OnModelReady
+  pointerTarget: RefObject<HTMLElement | null>
+}) {
   const [webglAvailable, setWebglAvailable] = useState<boolean | null>(null)
   const modelRef = useRef<Group>(null)
+  const pointerPosition = useRef(new Vector2())
+  const rotationOffset = useRef(new Vector2())
   const reducedMotion = useReducedMotion()
   const fallbackReported = useRef(false)
+
+  useEffect(() => {
+    const element = pointerTarget.current
+    if (!element) return
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') return
+
+      const bounds = element.getBoundingClientRect()
+      if (!bounds.width || !bounds.height) return
+
+      pointerPosition.current.set(
+        MathUtils.clamp(((event.clientX - bounds.left) / bounds.width) * 2 - 1, -1, 1),
+        MathUtils.clamp(((event.clientY - bounds.top) / bounds.height) * 2 - 1, -1, 1),
+      )
+    }
+    const handlePointerLeave = () => pointerPosition.current.set(0, 0)
+
+    element.addEventListener('pointermove', handlePointerMove)
+    element.addEventListener('pointerleave', handlePointerLeave)
+    return () => {
+      element.removeEventListener('pointermove', handlePointerMove)
+      element.removeEventListener('pointerleave', handlePointerLeave)
+    }
+  }, [pointerTarget])
 
   useEffect(() => {
     try {
@@ -178,7 +237,7 @@ export default function DroneExperience({ onModelReady }: { onModelReady: OnMode
   }, [onModelReady, webglAvailable])
 
   const rotate = (direction: -1 | 1) => {
-    if (modelRef.current) modelRef.current.rotation.y += direction * 0.35
+    rotationOffset.current.y += direction * 0.35
   }
 
   return (
@@ -208,7 +267,13 @@ export default function DroneExperience({ onModelReady }: { onModelReady: OnMode
                 gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
                 aria-label="3D drone model. Drag to rotate."
               >
-                <Scene modelRef={modelRef} reducedMotion={reducedMotion} onModelReady={onModelReady} />
+                <Scene
+                  modelRef={modelRef}
+                  pointerPosition={pointerPosition}
+                  rotationOffset={rotationOffset}
+                  reducedMotion={reducedMotion}
+                  onModelReady={onModelReady}
+                />
               </Canvas>
             )}
           </SceneErrorBoundary>

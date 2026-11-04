@@ -26,6 +26,12 @@ frontend/.cache/
 frontend/*.tsbuildinfo
 frontend/tsconfig.*.tsbuildinfo
 
+# Backend build output and local development database
+backend/target/
+backend/.local/
+!backend/.env.example
+!backend/.env.local.example
+
 # Editor and operating-system files
 .vscode/*
 !.vscode/extensions.json
