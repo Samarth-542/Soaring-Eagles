@@ -1,23 +1,36 @@
-import { lazy, Suspense, useCallback, useEffect, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import type { Group } from 'three'
 import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
+import AdminLoginPreview from './pages/AdminLoginPreview'
+import AdminPortalPreview from './pages/AdminPortalPreview'
+import AdminSessionPage from './pages/AdminSessionPage'
 import GridVignetteBackground from './components/GridVignetteBackground'
 import HeroIntroOverlay from './components/HeroIntroOverlay'
 import HomeContactForm from './components/HomeContactForm'
 import SiteHeader from './components/SiteHeader'
 import EventsPage from './pages/EventsPage'
+import EventDetailsPage from './pages/EventDetailsPage'
 import OurJourneyPage from './pages/OurJourneyPage'
 import ProjectsPage from './pages/ProjectsPage'
 import TeamPage from './pages/TeamPage'
 import { useHeroReveal } from './components/HeroReveal'
+import { fetchPublicEvents } from './lib/eventsApi'
+import type { PublicEventRecord } from './lib/eventsApi'
 
 const DroneExperience = lazy(() => import('./DroneExperience'))
 
-function DroneExperienceLoader({ onModelReady }: { onModelReady: (model?: Group, riseDistance?: number) => void }) {
+function DroneExperienceLoader({
+  onModelReady,
+  pointerTarget,
+}: {
+  onModelReady: (model?: Group, riseDistance?: number) => void
+  pointerTarget: RefObject<HTMLElement | null>
+}) {
   return (
     <Suspense fallback={<div className="scene-loading hero-scene-placeholder" role="status">PREPARING AIRCRAFT</div>}>
-      <DroneExperience onModelReady={onModelReady} />
+      <DroneExperience onModelReady={onModelReady} pointerTarget={pointerTarget} />
     </Suspense>
   )
 }
@@ -25,10 +38,34 @@ function DroneExperienceLoader({ onModelReady }: { onModelReady: (model?: Group,
 function HomePage() {
   const headerRef = useRef<HTMLElement>(null)
   const heroRef = useRef<HTMLElement>(null)
+  const [nextEvent, setNextEvent] = useState<PublicEventRecord | null>(null)
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true)
+  const [eventLoadError, setEventLoadError] = useState('')
   const { overlayRef, introDismissed, startReveal } = useHeroReveal(heroRef, headerRef)
   const handleModelReady = useCallback((model?: Group, riseDistance?: number) => {
     startReveal(model, riseDistance)
   }, [startReveal])
+
+  useEffect(() => {
+    let active = true
+    fetchPublicEvents()
+      .then((events) => {
+        if (!active) return
+        const upcoming = events
+          .filter((event) => !event.ended)
+          .sort((left, right) => left.startsAt.localeCompare(right.startsAt))
+        setNextEvent(upcoming[0] ?? null)
+      })
+      .catch(() => {
+        if (active) setEventLoadError('Event updates could not be loaded. Please visit the Events page or contact the club.')
+      })
+      .finally(() => {
+        if (active) setIsLoadingEvents(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <>
@@ -52,7 +89,7 @@ function HomePage() {
           <strong>SIDDAGANGA INSTITUTE<br />OF TECHNOLOGY<br />TUMAKURU, INDIA</strong>
           </div>
 
-        <DroneExperienceLoader onModelReady={handleModelReady} />
+        <DroneExperienceLoader onModelReady={handleModelReady} pointerTarget={heroRef} />
 
         <div className="hero-copy" data-reveal="support">
             <p>We design, build, and fly ideas into reality.</p>
@@ -71,7 +108,7 @@ function HomePage() {
               <div className="section-index">01 / WHAT'S NEXT</div>
               <h2 id="upcoming-title">On the <em>horizon.</em></h2>
             </div>
-            <p>Meet us at our next event.<br />Updates will appear here when announced.</p>
+            <p>Meet us at our next event.<br />Updates appear here when announced.</p>
           </div>
           <div className="upcoming-card">
             <div className="upcoming-card-index" aria-hidden="true">
@@ -80,11 +117,32 @@ function HomePage() {
               <i />
             </div>
             <div className="upcoming-card-copy">
-              <span className="event-status"><i /> EVENT UPDATES</span>
-              <h3>No upcoming events announced</h3>
-              <p>There are no upcoming events to share right now. Check back for the next Soaring Eagles announcement.</p>
+              <span className="event-status"><i /> {nextEvent?.status === 'CLOSED' ? 'EVENT CLOSED' : nextEvent ? 'UPCOMING EVENT' : 'EVENT UPDATES'}</span>
+              {isLoadingEvents ? (
+                <h3 role="status">Loading upcoming events…</h3>
+              ) : eventLoadError ? (
+                <>
+                  <h3>Event updates unavailable</h3>
+                  <p>{eventLoadError}</p>
+                </>
+              ) : nextEvent ? (
+                <>
+                  <h3>{nextEvent.title}</h3>
+                  <p>
+                    {new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(nextEvent.startsAt))}
+                    {' · '}{nextEvent.venue}{' · '}₹{Number(nextEvent.feeInr).toLocaleString('en-IN')}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3>No upcoming events announced</h3>
+                  <p>There are no upcoming events to share right now. Check back for the next Soaring Eagles announcement.</p>
+                </>
+              )}
             </div>
-            <Link className="upcoming-card-link" to="/events">EXPLORE EVENT ARCHIVE <span aria-hidden="true">↗</span></Link>
+            <Link className="upcoming-card-link" to={nextEvent ? `/events/${nextEvent.id}` : '/events'}>
+              {nextEvent ? 'VIEW EVENT DETAILS' : 'EXPLORE EVENT ARCHIVE'} <span aria-hidden="true">↗</span>
+            </Link>
           </div>
         </section>
 
@@ -163,9 +221,13 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:eventId" element={<EventDetailsPage />} />
         <Route path="/our-journey" element={<OurJourneyPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/admin-preview/login" element={<AdminLoginPreview />} />
+        <Route path="/admin-preview" element={<AdminPortalPreview />} />
+        <Route path="/admin" element={<AdminSessionPage />} />
         <Route path="*" element={<main className="team-main"><h1>Page not found</h1><Link to="/">Back home</Link></main>} />
       </Routes>
     </BrowserRouter>

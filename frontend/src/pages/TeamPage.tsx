@@ -1,13 +1,26 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import SiteHeader from '../components/SiteHeader'
-import { teamSections } from '../data/team'
+import { fetchPublicTeam } from '../lib/contentApi'
+import type { TeamDirectory as TeamDirectoryData } from '../lib/contentApi'
 import './TeamPage.css'
 
 function TeamPage() {
+  const [directory, setDirectory] = useState<TeamDirectoryData | null>(null)
+  const [loadError, setLoadError] = useState('')
+
   useEffect(() => {
     document.title = 'Our Team | Soaring Eagles'
+    let active = true
+    fetchPublicTeam()
+      .then((result) => {
+        if (active) setDirectory(result)
+      })
+      .catch(() => {
+        if (active) setLoadError('Team profiles could not be loaded. Please try again later.')
+      })
     return () => {
+      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
   }, [])
@@ -31,8 +44,12 @@ function TeamPage() {
             </div>
           </div>
 
-          <div className="team-groups">
-            {teamSections.map((section) => (
+          {loadError ? (
+            <p className="team-empty-state" role="alert">{loadError}</p>
+          ) : !directory ? (
+            <p className="team-empty-state" role="status">Loading team profiles…</p>
+          ) : <div className="team-groups">
+            {directory.groups.map((section) => (
               <section className="team-group" id={section.id} key={section.id} aria-labelledby={`${section.id}-title`}>
                 <div className="team-group-heading">
                   <h3 id={`${section.id}-title`}>{section.title}</h3>
@@ -40,29 +57,29 @@ function TeamPage() {
                 {section.members.length > 0 ? (
                   <div className="team-member-grid">
                     {section.members.map((member) => (
-                      <article className="team-member-card" key={member.name}>
+                      <article className="team-member-card" key={member.id}>
                         <div className="team-member-photo">
-                          <img src={member.image} alt={member.name} loading="lazy" decoding="async" />
+                          <img src={member.imageUrl} alt={member.name} loading="lazy" decoding="async" />
                         </div>
                         <div className="team-member-info">
                           <div>
                             <h4>{member.name}</h4>
                             <p>{member.role}</p>
                           </div>
-                          {(member.linkedin || member.instagram || member.x) && (
+                          {(member.linkedinUrl || member.instagramUrl || member.xUrl) && (
                             <div className="team-member-socials" aria-label={`${member.name}'s social profiles`}>
-                              {member.linkedin && (
-                                <a href={member.linkedin} target="_blank" rel="noreferrer" aria-label={`${member.name} on LinkedIn`}>
+                              {member.linkedinUrl && (
+                                <a href={member.linkedinUrl} target="_blank" rel="noreferrer" aria-label={`${member.name} on LinkedIn`}>
                                   in
                                 </a>
                               )}
-                              {member.instagram && (
-                                <a href={member.instagram} target="_blank" rel="noreferrer" aria-label={`${member.name} on Instagram`}>
+                              {member.instagramUrl && (
+                                <a href={member.instagramUrl} target="_blank" rel="noreferrer" aria-label={`${member.name} on Instagram`}>
                                   ◎
                                 </a>
                               )}
-                              {member.x && (
-                                <a href={member.x} target="_blank" rel="noreferrer" aria-label={`${member.name} on X`}>
+                              {member.xUrl && (
+                                <a href={member.xUrl} target="_blank" rel="noreferrer" aria-label={`${member.name} on X`}>
                                   X
                                 </a>
                               )}
@@ -86,7 +103,7 @@ function TeamPage() {
                 )}
               </section>
             ))}
-          </div>
+          </div>}
         </section>
       </main>
 

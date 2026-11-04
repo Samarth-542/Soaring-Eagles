@@ -1,12 +1,12 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { journeyMilestones } from '../../data/journey'
+import type { JourneyMilestone } from '../../lib/contentApi'
 import useReducedMotion from '../../hooks/useReducedMotion'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function JourneyTimeline() {
+export default function JourneyTimeline({ milestones }: { milestones: JourneyMilestone[] }) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion()
 
@@ -80,16 +80,16 @@ export default function JourneyTimeline() {
       <span className="journey-timeline-track" aria-hidden="true" />
       <span className="journey-timeline-progress" aria-hidden="true" />
       <ol className="journey-timeline-list" aria-label="Journey milestones, newest first">
-        {journeyMilestones.map((milestone, index) => (
-          <li className="journey-timeline-item" key={`${milestone.year}-${milestone.title}`}>
+        {milestones.map((milestone, index) => (
+          <li className="journey-timeline-item" key={milestone.id}>
             <div className="journey-timeline-date">
               <span className="journey-timeline-marker" aria-hidden="true" />
-              <time dateTime={milestone.year}>{milestone.year}</time>
+              <time dateTime={String(milestone.year)}>{milestone.year}</time>
             </div>
             <article className="journey-timeline-card">
               <div className="journey-timeline-image">
                 <img
-                  src={milestone.image}
+                  src={milestone.imageUrl}
                   alt={`${milestone.title} milestone`}
                   loading={index === 0 ? 'eager' : 'lazy'}
                   decoding="async"

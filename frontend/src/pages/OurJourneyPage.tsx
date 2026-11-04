@@ -1,14 +1,27 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import SiteHeader from '../components/SiteHeader'
 import JourneyTimeline from '../components/ui/journey-timeline'
-import { journeyMilestones } from '../data/journey'
+import { fetchPublicJourney } from '../lib/contentApi'
+import type { JourneyMilestone } from '../lib/contentApi'
 import './OurJourneyPage.css'
 
 function OurJourneyPage() {
+  const [milestones, setMilestones] = useState<JourneyMilestone[] | null>(null)
+  const [loadError, setLoadError] = useState('')
+
   useEffect(() => {
     document.title = 'Our Journey | Soaring Eagles'
+    let active = true
+    fetchPublicJourney()
+      .then((result) => {
+        if (active) setMilestones(result)
+      })
+      .catch(() => {
+        if (active) setLoadError('Journey milestones could not be loaded. Please try again later.')
+      })
     return () => {
+      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
   }, [])
@@ -31,12 +44,13 @@ function OurJourneyPage() {
               <p className="journey-section-label">OUR JOURNEY</p>
               <h2 id="journey-archive-title">Progress, <em>in flight.</em></h2>
             </div>
-            <p>{journeyMilestones.length} milestones · newest first</p>
+            <p>{milestones ? `${milestones.length} milestones · newest first` : 'Newest first'}</p>
           </div>
-          <JourneyTimeline />
-          <p className="journey-content-note">
-            Milestones and results are migrated from the previous public site. Competition placements and historical details should be confirmed with the club before production.
-          </p>
+          {loadError ? (
+            <p className="journey-content-note" role="alert">{loadError}</p>
+          ) : !milestones ? (
+            <p className="journey-content-note" role="status">Loading milestones…</p>
+          ) : <JourneyTimeline milestones={milestones} />}
         </section>
       </main>
 

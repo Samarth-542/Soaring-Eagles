@@ -3,7 +3,7 @@
 **Status:** Draft for review; homepage structure and contact presentation approved
 **Product owner:** Soaring Eagles  
 **Target launch:** 15 December 2026  
-**Last updated:** 2 November 2026
+**Last updated:** 4 November 2026
 **Repository:** `https://github.com/Samarth-542/Soaring-Eagles.git`
 
 > This PRD records requirements gathered in the conversation and uses the existing Soaring Eagles project as a content and workflow reference. It does not authorize implementation choices or a push. Items marked **Open decision** need confirmation before the affected work begins.
@@ -14,11 +14,21 @@ The Soaring Eagles website is the club’s public home for introducing the club,
 
 The first release is intended to be a complete live website by **15 December 2026**. The owner has said all requirements in this PRD are critical for that launch.
 
-**Current prototype:** The Vite/React frontend now presents Home as hero →
-upcoming-event placeholder → contact information/form → footer. The event
-section is not connected to event data, and the contact form has no backend
-endpoint yet; it must report submission failure honestly and provide its email
-fallback. This prototype status does not reduce the planned full-release scope.
+**Current implementation (4 November 2026):** Home presents hero → published
+upcoming-event data → contact information/form → footer. The event lifecycle,
+public event discovery, individual/team registration, capacity holds, payment
+order/webhook handling, registration administration, and Resend outbox/retry
+are implemented. Paid checkout remains disabled until Razorpay sandbox and
+webhook delivery are verified; live Resend delivery is also unverified. Public
+Team, Projects, and Journey content and authenticated editors use the database;
+admin image uploads use Supabase Storage. Admin authentication and account
+listing/creation/activation are implemented, with last-active-admin protection
+and session invalidation. The contact form has no backend endpoint. About,
+selected-recruit moderation, Contact inbox/replies, public site settings,
+password reset, CI, and production deployment remain incomplete. The owner
+reports the Supabase database is connected and `se_data` is public; production
+configuration has not been independently verified. These implementation
+statuses do not reduce the planned full-release scope.
 
 ## 2. Goals
 
@@ -278,18 +288,18 @@ As an admin, I want to update the public site and respond to contact messages so
 
 | Topic | Current state | Needed before |
 |---|---|---|
-| Payment provider | Undecided; compare providers for INR payments. | Payment integration and production testing |
+| Payment provider | Razorpay selected for INR payments; live credentials and sandbox verification remain pending. | Paid checkout enablement and production testing |
 | Website stack | Vite/React/TypeScript frontend; Java 21, Spring Boot 3.x, Maven modular-monolith backend; PostgreSQL hosted by Supabase. | Application scaffolding |
 | Visual direction | Owner selected 21hrs.space as the primary visual reference: cinematic dark aerospace styling, oversized display type, fine technical framing, and a scroll-led story. The home hero uses the complete approved GLB, including its weapon mesh, with an interactive 360-degree view. Preserve creator attribution and the supplied model axes. | Design review and frontend prototype |
 | Live drone feed | Not part of the current website interface. Consider only as a separately scoped feature after confirming the source/service, access, and privacy requirements; telemetry fields require approval. | Future scope confirmation and integration |
 | Hosting and domain | Hosting undecided; prefer the existing domain if available. | Release planning and production deployment |
 | Transactional email provider | Resend selected; sender/domain verification still needed. | Event confirmations and contact notifications/replies |
-| Admin authentication method | Spring Security username/password; email is the unique identifier, verified-email reset, password-only at launch. Prevent deletion of last active admin; require confirmation for self-removal. | Admin implementation |
-| Admin account management | Confirmed: all admins can add/remove admin accounts. This increases the impact of a compromised admin account and must be considered in authorization and audit design. | Admin authorization design |
+| Admin authentication method | Spring Security username/password with database-backed accounts; email is the unique identifier. Password reset/change is not implemented. Last active admin and self-deactivation safeguards are implemented. | Password recovery and production release |
+| Admin account management | Admins can add accounts and activate/deactivate accounts; changes are audited. The PRD's add/remove requirement is only partially met because permanent deletion and self-removal are not exposed. | Complete and verify the full requested account-removal behavior |
 | Selected-recruit form access | One shared secret link, manually rotated; storage and abuse controls must be designed. | Recruitment/profile form design |
 | Contact-message and registration data retention | No retention period or archival policy specified. | Production data policy |
-| Payment retries and capacity races | Capacity will be held temporarily during checkout; hold duration/expiry mechanics remain to be set with the payment provider. Prevent over-capacity confirmations. | Payment integration |
-| Payment receipts and tax | Receipt required; tax invoice and refund policy are not specified. Refunds are outside the portal. | Payment-provider selection |
+| Payment retries and capacity races | Capacity is held for 10 minutes during checkout and released on expiry; prevent over-capacity confirmations. Provider sandbox and concurrency tests remain pending. | Payment integration verification |
+| Payment receipts and tax | Receipt required; tax invoice and refund policy are not specified. Refunds are outside the portal. | Provider-specific receipt review |
 | Official additional social channels | Only the supplied email, LinkedIn, X, and location are confirmed. | Final content review |
 | Accessibility target | Follow accessibility best practices; no formal conformance claim selected. | Design and release sign-off |
 | Load/performance targets | No traffic or concurrency estimate was supplied. | Production capacity planning |
@@ -297,10 +307,17 @@ As an admin, I want to update the public site and respond to contact messages so
 ## 13. Content and implementation notes
 
 - The current reference site/repository is a content and workflow reference; the new application is a separate project.
-- The owner selected a Vite/React/TypeScript frontend; Java 21/Spring Boot 3.x/Maven modular-monolith backend; PostgreSQL hosted by Supabase; Supabase Storage; and Resend for transactional email. Hosting/domain and INR payment provider remain open. Reference README files describe the old site's dependencies; do not treat them as new-site requirements.
+- The owner selected a Vite/React/TypeScript frontend; Java 21/Spring Boot 3.x/Maven modular-monolith backend; PostgreSQL hosted by Supabase; Supabase Storage; Resend for transactional email; and Razorpay for INR payments. Hosting/domain, Resend sender verification, and Razorpay sandbox/production verification remain open. Reference README files describe the old site's dependencies; do not treat them as new-site requirements.
 - Reuse only club-approved information and media. Do not copy private member, registration, or payment data.
 - The new project’s master build guide is [MASTER_PROJECT_GUIDE.md](./MASTER_PROJECT_GUIDE.md).
 
 ## 14. Readiness summary
 
-The product scope, primary user journeys, and launch-critical capabilities are documented. This PRD is ready to guide planning, but implementation should wait for decisions that affect payment, authentication, deployment, and selected-recruit form access. All functional requirements use unique, sequential `REQ-XXX` identifiers and are paired with user scenarios or measurable outcomes.
+The product scope and primary user journeys are documented, and substantial
+website, event, registration, and admin functionality is implemented. Razorpay
+and a 10-minute checkout hold are selected; paid checkout must stay disabled
+until sandbox/webhook verification. Hosting/domain, production configuration,
+password recovery, selected-recruit access, privacy/retention decisions, and
+remaining feature workflows are open. All functional requirements use unique,
+sequential `REQ-XXX` identifiers and are paired with user scenarios or
+measurable outcomes.

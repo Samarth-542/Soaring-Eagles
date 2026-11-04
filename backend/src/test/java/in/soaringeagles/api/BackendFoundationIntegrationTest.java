@@ -13,10 +13,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class BackendFoundationIntegrationTest {
+
+    @DynamicPropertySource
+    static void adminProperties(DynamicPropertyRegistry registry) {
+        TestAdminCredentials.register(registry);
+    }
 
     @Autowired
     private TestRestTemplate restTemplate;

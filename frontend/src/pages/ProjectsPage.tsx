@@ -1,14 +1,27 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import SiteHeader from '../components/SiteHeader'
 import ProjectTimeline from '../components/ui/timeline-01'
-import { projects } from '../data/projects'
+import { fetchPublicProjects } from '../lib/contentApi'
+import type { Project } from '../lib/contentApi'
 import './ProjectsPage.css'
 
 function ProjectsPage() {
+  const [projects, setProjects] = useState<Project[] | null>(null)
+  const [loadError, setLoadError] = useState('')
+
   useEffect(() => {
     document.title = 'Our Projects | Soaring Eagles'
+    let active = true
+    fetchPublicProjects()
+      .then((result) => {
+        if (active) setProjects(result)
+      })
+      .catch(() => {
+        if (active) setLoadError('Projects could not be loaded. Please try again later.')
+      })
     return () => {
+      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
   }, [])
@@ -31,9 +44,15 @@ function ProjectsPage() {
               <p className="projects-timeline-label">PROJECT ARCHIVE</p>
               <h2 id="projects-directory-title">Built through <em>time.</em></h2>
             </div>
-            <p>{projects.length} builds · newest first</p>
+            <p>{projects ? `${projects.length} builds · newest first` : 'Newest first'}</p>
           </div>
-          <ProjectTimeline />
+          {loadError ? (
+            <p className="projects-intro-copy" role="alert">{loadError}</p>
+          ) : !projects ? (
+            <p className="projects-intro-copy" role="status">Loading projects…</p>
+          ) : (
+            <ProjectTimeline projects={projects} />
+          )}
         </section>
       </main>
 

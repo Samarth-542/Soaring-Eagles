@@ -1,6 +1,6 @@
 # Soaring Eagles Website — Development Phases
 
-**Status:** Proposed execution plan, based on the current PRD and owner answers  
+**Status:** Active execution tracker; implementation snapshot updated 4 November 2026  
 **Requirements source:** [prd.md](./prd.md)  
 **Architecture:** [architecture.md](./architecture.md)  
 **Engineering rules:** [rules.md](./rules.md)  
@@ -11,33 +11,33 @@
 > This decision supersedes any older weapon-free or mesh-hiding wording in the
 > task notes below.
 
-> **Implementation status:** Phase 1 frontend foundation and the Phase 2
-> homepage are in progress. The Vite/React/TypeScript frontend, Home prototype,
-> and initial `/team` UI scaffold exist under `frontend/`; T013, T023, T024,
-> T026, and T030 are partially implemented and are not complete. The Spring
-> Boot backend foundation now exists under `backend/`: Java 21/Spring Boot 3.5
-> scaffold, health endpoint, structured HTTP errors, authenticated-by-default
-> API routes, local H2 and Supabase PostgreSQL profiles, Flyway baseline, Maven
-> Wrapper, and isolated integration tests. T014–T015 are complete for the
-> foundation; T016's isolated test setup is implemented, while feature-level
-> transaction/schema conventions remain in progress. Admin authentication,
-> domain schemas, storage/email
-> providers, and CI remain pending. Home currently
-> has the existing hero, static upcoming-event empty state with a CSS
-> grid-vignette background, contact details and form, and the existing footer.
-> The Team route has a migrated public roster and empty states for year groups
-> without entries; backend integration is pending. The separate `/projects`
-> route now displays nine project entries and local photos from the previous
-> public Projects page in newest-first GSAP ScrollTrigger timeline format;
-> these static entries are not admin-managed. Historical
-> results and other claims still require owner review. Event data and contact
-> submissions are not backend-connected. Remaining public routes and
-> production integrations have not started.
-> Paths below may describe planned files that do not exist yet. The launch date is aggressive for the
-> full scope, especially while payment provider, hosting/domain, retention
-> policy, team availability, and selected technical details remain unresolved.
-> Phase 0 must estimate the work and surface schedule risk; changing the date
-> or scope requires owner approval.
+> **Implementation status (4 November 2026):** The Vite/React/TypeScript
+> frontend and Java 21/Spring Boot backend are implemented. Admin authentication
+> uses database-backed accounts, JDBC sessions, CSRF, login throttling, and
+> server-side authorization; the configured initial admin is bootstrapped into
+> the database. Admins can add accounts and activate/deactivate accounts, with
+> audit events, session invalidation, self-deactivation prevention, and a
+> last-active-admin safeguard. Password reset/change is not implemented.
+> Event publishing, individual/team registration, 10-minute capacity holds,
+> Razorpay order/webhook handling, registration administration, and Resend
+> outbox/retry are implemented. Public Team, Projects, and Journey content and
+> their admin editors use the database; admin image upload uses Supabase
+> Storage. The owner reports the Supabase database is connected and the
+> `se_data` bucket is public; production upload/deployment configuration and
+> provider delivery have not been independently verified. The backend suite
+> passes 29 tests; frontend lint and production build pass. Paid checkout stays
+> disabled pending Razorpay sandbox/webhook verification; Resend sender/live
+> delivery, provider failure/concurrency scenarios, and CI remain pending.
+> Home has its hero, data-backed events, contact details/form, and footer, but
+> contact submission is not connected. About, selected-recruit submissions and
+> moderation, contact inbox/replies, site settings, analytics, password reset,
+> and production deployment remain incomplete. Historical public content needs
+> owner review.
+> Paths below may describe planned files that do not exist yet. The launch date
+> is aggressive for the full scope, especially while hosting/domain, retention
+> policy, team availability, sandbox verification, and selected technical
+> details remain unresolved. Phase 0 must estimate the work and surface schedule
+> risk; changing the date or scope requires owner approval.
 
 ## 1. Decisions already recorded
 
@@ -48,16 +48,16 @@
 - **Admin authentication:** Spring Security username/password with managed
   credentials; email is the unique account identifier; verified-email password
   reset; password-only at launch.
-- **Admin session:** Server-side sessions with secure, HttpOnly cookies are
-  selected. Keep CSRF enabled; production session persistence and exact
-  frontend origins must be configured before login is exposed.
+- **Admin session:** Server-side JDBC sessions with secure, HttpOnly cookies
+  are implemented. Keep CSRF enabled; production database connectivity, TLS,
+  and exact frontend origins must be configured before login is exposed.
 - **Admin accounts:** All admins have equal website-management permissions.
   Prevent deleting the last active admin and require confirmation for
   self-removal. Owner provisions initial admins.
 - **Email:** Resend for transactional email.
-- **Payment:** INR provider remains undecided. Temporary capacity reservation
-  during checkout is selected; hold duration/expiry mechanics are to be decided
-  with the provider.
+- **Payment:** Razorpay selected for INR payments. Temporary capacity
+  reservation uses a 10-minute hold with expiry/release behavior. Paid checkout
+  remains disabled until sandbox and webhook verification.
 - **Selected-recruit profile access:** One shared secret link, manually rotated.
 - **Design:** 21hrs.space is a high-level reference for dark aerospace visuals
   and scroll continuity, not for the Home content order or exact scene
@@ -106,7 +106,7 @@ are understood.
 
 ### Work items
 
-- [ ] T001 [Plan:0.1] Compare INR payment providers for checkout, signed webhooks, idempotency, refunds handled outside the site, receipts, sandbox access, and fees; record the selected provider in `prd.md`.
+- [x] T001 [Plan:0.1] Compare INR payment providers for checkout, signed webhooks, idempotency, refunds handled outside the site, receipts, sandbox access, and fees; Razorpay was selected and recorded in `prd.md`.
 - [ ] T002 [Plan:0.1] Select frontend router, component/UI library, form-validation approach, and browser-test runner; record exact choices in `architecture.md`. (React Router 7 selected; UI library, form-validation approach, and browser-test runner remain open.)
 - [ ] T003 [Plan:0.1] Choose frontend/backend hosting, confirm whether the existing domain is available, and identify DNS, TLS, preview, and production access owners; update `prd.md`.
 - [ ] T004 [Plan:0.1] Confirm Supabase project ownership, PostgreSQL connection method, Storage buckets/access policy, and environment separation; record required configuration names without secrets in `architecture.md`.
@@ -114,8 +114,8 @@ are understood.
 - [ ] T006 [Plan:0.2] Inventory old-site text/images and mark each candidate approved, needs correction, or excluded; record owner-reviewed source and factual corrections in `docs/content-review.md`.
 - [ ] T007 [Plan:0.2] Confirm privacy/terms copy, contact-attachment and registration retention periods, rejected-profile deletion behavior, and payment-data retention with the owner/legal reviewer; record decisions in `prd.md`.
 - [ ] T008 [Plan:0.2] Confirm the shared recruit-link distribution/rotation owner, storage method, rate limits, exposure response, and when rotation invalidates active form sessions; record the operating procedure in `architecture.md`.
-- [ ] T009 [Plan:0.3] Set password policy, login throttling/lockout, email-reset token expiry, email delivery failure recovery, admin audit requirements, and last-admin safeguards; record acceptance criteria in `architecture.md`.
-- [ ] T010 [Plan:0.3] Select a finite checkout-hold duration and expiry/release behavior with the payment-provider design; document deadline/capacity race handling in `architecture.md`.
+- [ ] T009 [Plan:0.3] Set password policy, login throttling/lockout, email-reset token expiry, email delivery failure recovery, admin audit requirements, and last-admin safeguards; record acceptance criteria in `architecture.md`. (Selected for sign-in: minimum 12-character password provisioning, five failed attempts per email or source IP per 15 minutes, then a 15-minute lockout; reset delivery, audit, and last-admin policies remain open.)
+- [x] T010 [Plan:0.3] Select a finite checkout-hold duration and expiry/release behavior with the payment-provider design; the 10-minute hold and expiry/release behavior are documented in `architecture.md`.
 - [ ] T011 [Plan:0.3] Confirm launch content and copy for the Home hero, upcoming-event and contact sections; the 21hrs.space-inspired visual direction; font licensing; attribution/license record for `assets/drone/assault_drone_concept.glb`; accessibility checklist; supported browsers/viewports; and content approval owner in `prd.md` and `design.md`.
 - [ ] T012 [Plan:0.3] Estimate each phase against the 15 December 2026 launch target using the actual team/availability; raise a go/no-go or schedule/scope change for owner approval in `phase.md`.
 
@@ -125,7 +125,7 @@ are understood.
   infrastructure access are known or explicitly scheduled as blocking tasks.
 - Content owners and review status are recorded; no unapproved personal data is
   planned for transfer.
-- Retention, privacy/legal, shared-link handling, checkout hold, and launch
+- Retention, privacy/legal, shared-link handling, and launch
   verification decisions are documented.
 - The owner has reviewed the schedule risk and approved the date/scope baseline.
 
@@ -138,16 +138,16 @@ database migration, admin identity, and repeatable CI.
 
 ### Work items
 
-- [ ] T013 [Plan:1.1] Complete the Vite + React + TypeScript application under `frontend/` with the selected router, lint/type-check/build scripts, and a working local landing route. (In progress: initial app, scripts, and homepage prototype exist; router selection and full foundation remain open.)
-- [x] T014 [Plan:1.2] Scaffold a Java 21/Spring Boot 3.x Maven modular monolith under `backend/` with configuration, health endpoint, structured error handling, and feature-package boundaries. (Implemented with Spring Boot 3.5.16, Maven Wrapper, health checks, RFC-style error responses, and fail-closed API security; feature modules will be added with their domain work.)
-- [x] T015 [Plan:1.3] Configure backend PostgreSQL connectivity to Supabase using server-only environment variables and add Flyway migration baseline under `backend/src/main/resources/db/migration/`. (The `supabase` profile reads server-only `SUPABASE_DB_*` variables; the initial Flyway migration is intentionally schema-neutral. No Supabase connection or production database was accessed.)
+- [x] T013 [Plan:1.1] Complete the Vite + React + TypeScript application under `frontend/` with the selected router, lint/type-check/build scripts, and a working local landing route. (Vite, React Router, TypeScript, lint, type-check, build, and the public routes are in place.)
+- [x] T014 [Plan:1.2] Scaffold a Java 21/Spring Boot 3.x Maven modular monolith under `backend/` with configuration, health endpoint, structured error handling, and feature-package boundaries. (Implemented with Spring Boot 3.5.16, Maven Wrapper, health checks, RFC-style error responses, fail-closed API security, and event, registration, content, payment, email, and admin-account modules.)
+- [x] T015 [Plan:1.3] Configure backend PostgreSQL connectivity to Supabase using server-only environment variables and add Flyway migration baseline under `backend/src/main/resources/db/migration/`. (The `supabase` profile uses server-only `SUPABASE_DB_*` variables and Flyway migrations V1–V7; the owner reports the Supabase database is connected. Production configuration is not independently verified here.)
 - [ ] T016 [Plan:1.3] Add shared persistence conventions, transaction boundaries, schema naming, and isolated test database setup in `backend/src/main/java/<package>/config/` and `backend/src/test/java/<package>/`. (In progress: schema validation, disabled Open Session in View, local/test H2 profiles, and migration/auth/health integration tests are in place; feature transaction boundaries and schema conventions will be set with the domain modules.)
-- [ ] T017 [Plan:1.4] Implement Spring Security admin email/password authentication, initial-admin provisioning, verified-email reset, login throttling, and backend authorization in `backend/src/main/java/<package>/security/`.
-- [ ] T018 [Plan:1.4] Implement admin account lifecycle rules, equal admin permissions, audit events, last-active-admin protection, and confirmed self-removal in `backend/src/main/java/<package>/admin/`.
-- [ ] T019 [Plan:1.4] Configure Supabase Storage access from the backend with separate private and public media policies; document bucket names and environment variables in `.env.example`.
-- [ ] T020 [Plan:1.4] Add a Resend adapter in `backend/src/main/java/<package>/integrations/email/` with safe configuration, delivery outcomes, and no secret exposure to the frontend.
+- [ ] T017 [Plan:1.4] Implement Spring Security admin email/password authentication, initial-admin provisioning, verified-email reset, login throttling, and backend authorization in `backend/src/main/java/<package>/security/`. (Database-backed sign-in, initial-admin bootstrap, JDBC sessions, CSRF, throttling, and default-deny authorization are implemented. Password reset/change remains pending.)
+- [ ] T018 [Plan:1.4] Implement admin account lifecycle rules, equal admin permissions, audit events, last-active-admin protection, and confirmed self-removal in `backend/src/main/java/<package>/admin/`. (Equal-permission account listing, creation, activation/deactivation, audit events, session invalidation, and last-active-admin protection are implemented. Permanent deletion and self-removal remain incomplete against the full lifecycle requirement.)
+- [ ] T019 [Plan:1.4] Configure Supabase Storage access from the backend with separate private and public media policies; document bucket names and environment variables in `.env.example`. (Authenticated public-image upload and `media_assets` metadata are implemented; the owner reports public bucket `se_data` is configured. Private attachment policies and production credential verification remain pending.)
+- [x] T020 [Plan:1.4] Add a Resend adapter in `backend/src/main/java/<package>/integrations/email/` with safe configuration, delivery outcomes, and no secret exposure to the frontend. (Confirmation-email outbox, delivery tracking, and retry are implemented; sender credentials and live delivery still require verification.)
 - [ ] T021 [Plan:1.5] Add GitHub Actions checks for frontend lint/type-check/build and backend Maven tests/build; require CI on pull requests and configure preview deployment without production secrets.
-- [ ] T022 [Plan:1.5] Add safe local setup and environment documentation in `README.md`; ensure `.gitignore` excludes real environment files, build output, and local data. (Backend run/test commands, safe environment variable names, and backend target/local-data ignore rules are documented; frontend setup was already documented. Final clean-checkout setup verification remains pending.)
+- [x] T022 [Plan:1.5] Add safe local setup and environment documentation in `README.md`; ensure `.gitignore` excludes real environment files, build output, and local data. (Backend/frontend run and test commands, safe environment variable names, and local-data ignore rules are documented; a fresh clean-checkout setup has not been separately exercised.)
 
 ### Exit gate
 
@@ -172,14 +172,14 @@ database/provider details.
 ### Work items
 
 - [ ] T023 [US1] [Plan:2.1] Build the shared site layout, navigation, footer, page metadata, responsive behavior, and accessible UI primitives using the approved visual system in `design.md` in `frontend/src/components/` and `frontend/src/app/`. (In progress: shared header and separate Team route exist; header and hero links target implemented Home sections and Team.)
-- [ ] T024 [US1] [Plan:2.1] Implement Home as four ordered parts: the existing hero, an upcoming-event section, a contact section showing the confirmed contact details and form (full name, email, subject, message, optional document attachment, submission status/errors), and the footer. The form must ultimately use the shared contact-request workflow from REQ-042/REQ-043 and satisfy REQ-058, not create a separate homepage-only workflow. Do not embed Mission, Projects, Journey, a full Events directory, or Team sections on Home. Use 21hrs.space for scroll continuity and atmosphere, not its exact scene sequence; preserve native scrolling and honor reduced-motion preferences. (In progress: existing hero retained; upcoming-event empty state with a CSS grid vignette, contact details/form, and footer are in the frontend. The optional PDF/JPEG/PNG attachment is limited to 10 MB. `/api/contact` and event-data integration do not exist yet; the form reports failure and offers the email fallback rather than claiming delivery. Contact UI uses the landing-page charcoal/off-white/copper theme and Space Grotesk/IBM Plex Mono. Home navigation targets implemented sections; the task remains incomplete pending data/API integration and focused validation.)
-- [ ] T025 [US1] [Plan:2.1] Implement public Projects and Journey pages, typed content rendering, responsive media, and explicit empty/loading/error states in `frontend/src/pages/`. (Projects and Journey pages are implemented with typed static content, local images, responsive newest-first GSAP ScrollTrigger timelines, and reduced-motion support; data-backed states and admin-managed Journey content remain pending. Verify historical facts before production.)
+- [ ] T024 [US1] [Plan:2.1] Implement Home as four ordered parts: the existing hero, an upcoming-event section, a contact section showing the confirmed contact details and form (full name, email, subject, message, optional document attachment, submission status/errors), and the footer. The form must ultimately use the shared contact-request workflow from REQ-042/REQ-043 and satisfy REQ-058, not create a separate homepage-only workflow. Do not embed Mission, Projects, Journey, a full Events directory, or Team sections on Home. Use 21hrs.space for scroll continuity and atmosphere, not its exact scene sequence; preserve native scrolling and honor reduced-motion preferences. (In progress: existing hero retained; upcoming events now load from the public event API with loading, error, and empty states. Contact details/form and footer are implemented. The optional PDF/JPEG/PNG attachment is limited to 10 MB. `/api/contact` remains unimplemented; the form reports failure and offers the email fallback rather than claiming delivery. Contact UI uses the landing-page charcoal/off-white/copper theme and Space Grotesk/IBM Plex Mono. Home navigation targets implemented sections; the task remains incomplete pending contact API integration and focused validation.)
+- [x] T025 [US1] [Plan:2.1] Implement public Projects and Journey pages, typed content rendering, responsive media, and explicit empty/loading/error states in `frontend/src/pages/`. (Public Projects and Journey pages load published database content with loading/error/empty states and responsive timelines; editors manage these records. Verify historical facts before production.)
 - [ ] T026 [US1] [Plan:2.2] Copy approved logo, project, event, team, and drone assets into `frontend/public/`; preserve the complete GLB and creator attribution. Optimize media and preserve attribution/license metadata. (In progress: selected assets have been copied; owner confirms rights to display the full model including its weapon; runtime uses the complete GLB with its supplied axes.)
-- [ ] T027 [US1] [Plan:2.3] Create Project and Journey persistence, migration, DTOs, service, repository, and public/admin REST endpoints in `backend/src/main/java/<package>/projects/` and `journey/`.
+- [x] T027 [US1] [Plan:2.3] Create Project and Journey persistence, migration, DTOs, service, repository, and public/admin REST endpoints in `backend/src/main/java/<package>/projects/` and `journey/`. (Flyway V6/V7 schema/seed, public reads, and authenticated CRUD are implemented.)
 - [ ] T028 [US1] [Plan:2.3] Create public-contact-details persistence and public/admin REST endpoints in `backend/src/main/java/<package>/contacts/`; expose only approved public contact fields.
-- [ ] T029 [US1] [Plan:2.4] Build authenticated admin forms for project/Journey entries and contact-page details, with server validation and immediate publish-on-save behavior in `frontend/src/pages/admin/` and backend feature modules.
-- [ ] T030 [US1] [Plan:2.4] Implement public Team structure using approved profiles only, grouped by study year, with private contact fields excluded from public DTOs in `frontend/src/pages/TeamPage.tsx` and `backend/src/main/java/<package>/profiles/`. (Frontend in progress: the separate Team route renders public names, roles, portraits, and social links from the legacy roster and the additional profiles currently visible on the live public Team page; public portrait assets are copied locally, email/phone fields are excluded, and groups without entries show empty states. Backend-backed approved-profile integration remains pending.)
-- [ ] T031 [US1] [Plan:2.4] Add component/API tests for public field filtering, content publishing visibility, empty states, invalid inputs, and unauthorized admin edits under `frontend/` and `backend/src/test/`.
+- [ ] T029 [US1] [Plan:2.4] Build authenticated admin forms for project/Journey entries and contact-page details, with server validation and immediate publish-on-save behavior in `frontend/src/pages/admin/` and backend feature modules. (Authenticated Team/Projects/Journey editors and server validation are implemented. Public contact/site-detail editing is not.)
+- [x] T030 [US1] [Plan:2.4] Implement public Team structure using approved profiles only, grouped by study year, with private contact fields excluded from public DTOs in `frontend/src/pages/TeamPage.tsx` and `backend/src/main/java/<package>/profiles/`. (Public Team reads published database profiles grouped by study year; private contact fields are excluded. Admin CRUD and image upload are connected.)
+- [ ] T031 [US1] [Plan:2.4] Add component/API tests for public field filtering, content publishing visibility, empty states, invalid inputs, and unauthorized admin edits under `frontend/` and `backend/src/test/`. (Backend integration tests cover public filtering, draft visibility, authorization, and validation; frontend component/API test coverage remains outstanding.)
 
 ### Exit gate
 
@@ -202,12 +202,12 @@ consistently represented.
 
 ### Work items
 
-- [ ] T032 [US2] [Plan:3.1] Add Event schema/migration and typed domain models for title, description, dates, venue, poster, eligibility, INR fee, registration type, deadline, capacity, team size, publication state, and archive data in `backend/src/main/resources/db/migration/` and `backend/src/main/java/<package>/events/`.
-- [ ] T033 [US2] [Plan:3.1] Implement event create/edit/schedule/publish/close operations with server-side admin authorization and draft-by-default behavior in `backend/src/main/java/<package>/events/`.
-- [ ] T034 [US2] [Plan:3.1] Build admin event management screens for draft/published/closed state, fee, deadline, eligibility, capacity, registration type, and team-size limits in `frontend/src/pages/admin/EventManagement.tsx`.
-- [ ] T035 [US2] [Plan:3.2] Build public event listing/detail pages showing published status, eligibility, fee, deadline, and remaining capacity in `frontend/src/pages/Events.tsx` and `EventDetails.tsx`. (A static `/events` route now shows an honest no-upcoming-events state and four past public events in a GSAP timeline; published-event data, details, and registration integration remain pending.)
-- [ ] T036 [US2] [Plan:3.2] Implement automatic upcoming-to-past event classification from scheduled end time and admin-editable archive story/photos/results in `backend/src/main/java/<package>/events/`.
-- [ ] T037 [US2] [Plan:3.2] Add event lifecycle tests for draft invisibility, explicit publishing, deadline closure, capacity boundaries, date rollover, archive editing, and malformed event data in `backend/src/test/`.
+- [x] T032 [US2] [Plan:3.1] Add Event schema/migration and typed domain models for title, description, dates, venue, poster, eligibility, INR fee, registration type, deadline, capacity, team size, publication state, and archive data in `backend/src/main/resources/db/migration/` and `backend/src/main/java/in/soaringeagles/api/events/`.
+- [x] T033 [US2] [Plan:3.1] Implement event create/edit/schedule/publish/close operations with server-side admin authorization and draft-by-default behavior in `backend/src/main/java/in/soaringeagles/api/events/`.
+- [x] T034 [US2] [Plan:3.1] Build the authenticated admin event management screen for drafts, publication, closure, event details, capacity, registration type, and team-size limits in `frontend/src/pages/admin/EventManagement.tsx`.
+- [x] T035 [US2] [Plan:3.2] Complete and validate public event listing/detail pages for published status, eligibility, fee, deadline, registration availability, and remaining capacity in `frontend/src/pages/EventsPage.tsx` and `EventDetailsPage.tsx`. Registration availability and capacity now come from the backend.
+- [x] T036 [US2] [Plan:3.2] Implement upcoming/past classification from event end times and admin-editable archive story, photos, and results in the event API and public pages.
+- [ ] T037 [US2] [Plan:3.2] Complete lifecycle tests for deadline/date rollover, capacity boundaries, archive editing, and malformed data. Existing tests cover draft privacy, explicit publishing, scheduling, deadline closure, registration capacity, team limits, and unsafe image URLs; remaining edge-case coverage is still needed.
 
 ### Exit gate
 
@@ -229,15 +229,15 @@ registration confirmed based on the browser return URL or an unverified event.
 
 ### Work items
 
-- [ ] T038 [US2] [Plan:4.1] Add Registration, TeamMember, and PaymentAttempt migrations/models with private participant fields, provider references, explicit states, and idempotency support in `backend/src/main/resources/db/migration/` and `backend/src/main/java/<package>/registrations/`.
-- [ ] T039 [US2] [Plan:4.1] Implement server validation for event state, deadline, capacity, individual fields, team/captain fields, team-size bounds, and free-text department/institution in `backend/src/main/java/<package>/registrations/`.
-- [ ] T040 [US2] [Plan:4.1] Build individual/team registration forms with retained values on recoverable failures and distinct pending, closed, failed, retry, and confirmed states in `frontend/src/features/registrations/`.
-- [ ] T041 [US2] [Plan:4.2] Integrate the selected INR payment provider behind `PaymentGateway.java`; create checkout attempts and a time-limited capacity hold with expiry/release behavior in `backend/src/main/java/<package>/integrations/payment/PaymentGateway.java`.
-- [ ] T042 [US2] [Plan:4.2] Implement signed payment webhook verification, idempotent event processing, transactional capacity recheck, and confirmed registration only after verified success in `backend/src/main/java/<package>/integrations/payment/PaymentWebhookController.java`.
-- [ ] T043 [US2] [Plan:4.2] Add provider sandbox tests for success, failure, abandonment, duplicate webhook, invalid signature, timeout/retry, expired hold, deadline race, and concurrent capacity limit in `backend/src/test/`.
-- [ ] T044 [US2] [Plan:4.3] Send event details and receipt through Resend only after verified payment; persist delivery state and surface email failures for retry in `backend/src/main/java/<package>/integrations/email/`.
-- [ ] T045 [US2] [Plan:4.3] Build authorized admin registration review/edit and Excel-compatible export, protecting participant, team, and payment data in `frontend/src/pages/admin/registrations/` and `backend/src/main/java/<package>/registrations/`.
-- [ ] T046 [US2] [Plan:4.3] Verify public endpoints never return registration/team/payment data and only authorized admins can view or edit those records in `backend/src/test/`.
+- [x] T038 [US2] [Plan:4.1] Add Registration, TeamMember, and PaymentAttempt migrations/models with private participant fields, provider references, explicit states, and idempotency support in `backend/src/main/resources/db/migration/` and `backend/src/main/java/in/soaringeagles/api/registrations/`.
+- [x] T039 [US2] [Plan:4.1] Implement server validation for event state, deadline, capacity, individual fields, team/captain fields, team-size bounds, and free-text department/institution in `backend/src/main/java/in/soaringeagles/api/registrations/`.
+- [x] T040 [US2] [Plan:4.1] Build individual/team registration forms with retained values on recoverable failures and distinct pending, closed, failed, retry, and confirmed states in `frontend/src/components/RegistrationForm.tsx`.
+- [x] T041 [US2] [Plan:4.2] Integrate Razorpay behind `PaymentGateway.java`; create checkout attempts and 10-minute capacity holds with expiry/release behavior in `backend/src/main/java/in/soaringeagles/api/integrations/payment/`.
+- [x] T042 [US2] [Plan:4.2] Implement signed payment webhook verification, idempotent event processing, transactional capacity handling, and confirmed registration only after verified success in `backend/src/main/java/in/soaringeagles/api/integrations/payment/`.
+- [ ] T043 [US2] [Plan:4.2] Add provider sandbox tests for success, failure, abandonment, duplicate webhook, invalid signature, timeout/retry, expired hold, deadline race, and concurrent capacity limit in `backend/src/test/`. Local integration tests cover simulated success/failure, duplicate and invalid webhooks, retry, and hold expiry; no Razorpay sandbox or concurrent-capacity run has been verified.
+- [x] T044 [US2] [Plan:4.3] Queue event details and receipt through Resend only after verified payment; persist delivery state and surface failures for retry in `backend/src/main/java/in/soaringeagles/api/integrations/email/`. Provider credentials and live delivery still require verification.
+- [x] T045 [US2] [Plan:4.3] Build authorized admin registration review/edit and CSV export, protecting participant, team, and payment data in `frontend/src/pages/admin/RegistrationManagement.tsx` and `backend/src/main/java/in/soaringeagles/api/registrations/`.
+- [x] T046 [US2] [Plan:4.3] Verify public endpoints never return registration/team/payment data and only authorized admins can view or edit those records in `backend/src/test/java/in/soaringeagles/api/RegistrationPaymentIntegrationTest.java`.
 
 ### Exit gate
 

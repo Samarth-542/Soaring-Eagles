@@ -1,14 +1,12 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { projects } from '../../data/projects'
+import type { Project } from '../../lib/contentApi'
 import useReducedMotion from '../../hooks/useReducedMotion'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const newestProjectsFirst = [...projects].sort((first, second) => second.year - first.year)
-
-export default function ProjectTimeline() {
+export default function ProjectTimeline({ projects }: { projects: Project[] }) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion()
 
@@ -73,16 +71,16 @@ export default function ProjectTimeline() {
       <span className="project-timeline-track" aria-hidden="true" />
       <span className="project-timeline-progress" aria-hidden="true" />
       <ol className="project-timeline-list" aria-label="Projects in reverse chronological order">
-        {newestProjectsFirst.map((project, index) => {
+        {projects.map((project, index) => {
           const side = index % 2 === 0 ? 'left' : 'right'
 
           return (
-            <li className={`project-timeline-item project-timeline-item--${side}`} key={project.title}>
+            <li className={`project-timeline-item project-timeline-item--${side}`} key={project.id}>
               <span className="project-timeline-marker" aria-hidden="true" />
               <article className="project-timeline-card">
                 <div className="project-timeline-image">
                   <img
-                    src={project.image}
+                    src={project.imageUrl}
                     alt={`${project.title} aircraft`}
                     loading="lazy"
                     decoding="async"

@@ -1,0 +1,89 @@
+.admin-session-page {
+  min-height: 100vh;
+  padding: 1.5rem clamp(1.25rem, 5vw, 5rem);
+  color: var(--paper);
+  background:
+    radial-gradient(ellipse at 75% 25%, rgba(221, 151, 107, 0.08), transparent 34%),
+    #0a0c0d;
+}
+
+.admin-session-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(245, 240, 233, 0.12);
+  color: var(--paper-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.admin-session-brand {
+  color: var(--paper);
+}
+
+.admin-session-brand span,
+.admin-session-topbar a:last-child {
+  color: var(--accent);
+}
+
+.admin-session-card {
+  width: min(100%, 38rem);
+  margin: clamp(4rem, 15vh, 10rem) auto;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border: 1px solid rgba(245, 240, 233, 0.13);
+  border-radius: 0.8rem;
+  background: rgba(15, 18, 19, 0.94);
+}
+
+.admin-session-eyebrow {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.admin-session-card h1 {
+  margin: 0.75rem 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+}
+
+.admin-session-email,
+.admin-session-unavailable {
+  color: var(--paper-dim);
+  line-height: 1.7;
+}
+
+.admin-session-card button {
+  min-height: 2.8rem;
+  margin-top: 1rem;
+  padding: 0 1.2rem;
+  border: 1px solid rgba(221, 151, 107, 0.4);
+  border-radius: 0.4rem;
+  color: var(--paper);
+  background: rgba(221, 151, 107, 0.12);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+.admin-session-card button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.admin-session-card > a {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+
+.admin-session-error {
+  color: #f0aaa3;
+}

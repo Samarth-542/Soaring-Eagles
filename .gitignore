@@ -30,6 +30,7 @@ frontend/tsconfig.*.tsbuildinfo
 backend/target/
 backend/.local/
 !backend/.env.example
+!backend/.env.local.example
 
 # Editor and operating-system files
 .vscode/*
