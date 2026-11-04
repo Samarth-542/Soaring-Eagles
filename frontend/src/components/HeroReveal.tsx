@@ -46,6 +46,7 @@ export function useHeroReveal(
       }
 
       gsap.set(allElements, { autoAlpha: 0, y: 24 })
+      if (title) gsap.set(title, { y: 96 })
 
       const originalPosition = model?.position.clone()
       const originalScale = model?.scale.clone()
@@ -95,7 +96,7 @@ export function useHeroReveal(
       }
 
       if (title) {
-        reveal.to(title, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out' }, titleStartsAt)
+        reveal.to(title, { autoAlpha: 1, y: 0, duration: 1.15, ease: 'power3.out' }, titleStartsAt)
       }
       reveal.to(primary, { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.12, ease: 'power2.out' }, titleStartsAt + 0.12)
       reveal.to(support, { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.1, ease: 'power2.out' }, supportStartsAt)
