@@ -218,7 +218,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
-  opacity: 0.32;
+  opacity: 0.42;
   background-image:
     radial-gradient(1px 1px at 11% 22%, #d2d7d9 55%, transparent),
     radial-gradient(1px 1px at 23% 64%, #aeb8bc 55%, transparent),
