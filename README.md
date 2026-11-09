@@ -315,3 +315,7 @@ production release remain roadmap items. See
   the backend, not in browser-exposed frontend variables.
 - Review [assets/README.md](./assets/README.md) for asset permissions and
   attribution guidance.
+
+## Architecture
+
+[![Architecture diagram](https://gitdiagram.com/samarth-542/soaring-eagles/diagram.png)](https://gitdiagram.com/samarth-542/soaring-eagles)
