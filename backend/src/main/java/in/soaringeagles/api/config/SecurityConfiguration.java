@@ -48,7 +48,12 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/content/**").permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/content/team",
+                                "/api/v1/content/projects",
+                                "/api/v1/content/journey",
+                                "/api/v1/content/site-details").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/contact").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/events/*/registrations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/registrations/*/status").permitAll()
