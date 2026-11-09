@@ -1,0 +1,107 @@
+.site-details-form {
+  margin-top: 1.5rem;
+}
+
+.site-details-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.site-details-form-grid label {
+  display: grid;
+  gap: 0.5rem;
+  color: var(--paper-dim);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.site-details-form-grid input,
+.site-details-form-grid textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid rgba(245, 240, 233, 0.16);
+  border-radius: 0.35rem;
+  color: var(--paper);
+  background: #0b0d0e;
+  font: 0.82rem var(--font-body);
+}
+
+.site-details-form-grid input {
+  min-height: 2.8rem;
+}
+
+.site-details-form-grid textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.site-details-form-grid input:focus-visible,
+.site-details-form-grid textarea:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.site-details-location {
+  grid-column: 1 / -1;
+}
+
+.site-details-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(245, 240, 233, 0.1);
+}
+
+.site-details-form-actions p,
+.site-details-status {
+  margin: 0;
+  color: var(--paper-dim);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.site-details-form-actions button {
+  min-height: 2.7rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.35rem;
+  color: var(--accent);
+  background: rgba(221, 151, 107, 0.06);
+  font: 0.65rem var(--font-mono);
+  cursor: pointer;
+}
+
+.site-details-form-actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.site-details-status {
+  margin-top: 1rem;
+  color: var(--accent);
+}
+
+.site-details-status.is-error {
+  color: #f0a09c;
+}
+
+@media (max-width: 680px) {
+  .site-details-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-details-location {
+    grid-column: auto;
+  }
+
+  .site-details-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

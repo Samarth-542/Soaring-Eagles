@@ -1,0 +1,34 @@
+package in.soaringeagles.api.content;
+
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class SiteDetailsController {
+
+    private final SiteDetailsService siteDetailsService;
+
+    SiteDetailsController(SiteDetailsService siteDetailsService) {
+        this.siteDetailsService = siteDetailsService;
+    }
+
+    @GetMapping("/api/v1/content/site-details")
+    public SiteDetailsService.SiteDetails publicSiteDetails() {
+        return siteDetailsService.get();
+    }
+
+    @GetMapping("/api/v1/admin/site-details")
+    public SiteDetailsService.SiteDetails adminSiteDetails() {
+        return siteDetailsService.get();
+    }
+
+    @PutMapping("/api/v1/admin/site-details")
+    public SiteDetailsService.SiteDetails update(
+            @Valid @RequestBody SiteDetailsService.SiteDetailsRequest request,
+            java.security.Principal actor) {
+        return siteDetailsService.update(request, actor.getName());
+    }
+}

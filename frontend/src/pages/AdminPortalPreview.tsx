@@ -4,6 +4,8 @@ import EventManagement from './admin/EventManagement'
 import RegistrationManagement from './admin/RegistrationManagement'
 import ContentManagement from './admin/ContentManagement'
 import AdminAccountManagement from './admin/AdminAccountManagement'
+import ContactInbox from './admin/ContactInbox'
+import SiteDetailsManagement from './admin/SiteDetailsManagement'
 import './AdminPortalPreview.css'
 
 const adminSections = [
@@ -54,7 +56,7 @@ const adminSections = [
     label: 'Contact inbox',
     group: 'Operations',
     icon: 'IN',
-    description: 'Review contact messages and private attachments, reply by email, and retain reply history.',
+    description: 'Review website messages, mark them read or unread, and archive handled submissions.',
   },
   {
     id: 'site-details',
@@ -179,7 +181,7 @@ function AdminPortalPreview({
           ) : (
             <div className="admin-preview-notice admin-authenticated-notice" role="status">
               <span className="admin-notice-mark" aria-hidden="true">✓</span>
-              <p><strong>Signed in as {authenticatedEmail}.</strong> Events, registrations, team profiles, projects, journey content, and admin accounts are connected to the database.</p>
+              <p><strong>Signed in as {authenticatedEmail}.</strong> Events, registrations, contact messages, site details, content, and admin accounts are connected to the database.</p>
             </div>
           )}
 
@@ -237,7 +239,7 @@ function AdminPortalPreview({
                   <p>Hiding controls is not authorization. Admin sign-in, permissions, audit history, and protected data access must be enforced by the backend.</p>
                   <div className="admin-access-status">
                     <span aria-hidden="true" />
-                    {preview ? 'BACKEND FOUNDATION ONLY' : 'EVENT + REGISTRATION APIs CONNECTED'}
+                    {preview ? 'BACKEND FOUNDATION ONLY' : 'ADMIN APIS CONNECTED'}
                   </div>
                 </section>
               </div>
@@ -247,6 +249,10 @@ function AdminPortalPreview({
             <EventManagement />
           ) : !preview && activeSection === 'registrations' ? (
             <RegistrationManagement />
+          ) : !preview && activeSection === 'contacts' ? (
+            <ContactInbox />
+          ) : !preview && activeSection === 'site-details' ? (
+            <SiteDetailsManagement />
           ) : !preview && (activeSection === 'profiles' || activeSection === 'projects' || activeSection === 'journey') ? (
             <ContentManagement section={activeSection} />
           ) : !preview && activeSection === 'admins' && authenticatedEmail ? (

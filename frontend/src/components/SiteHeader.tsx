@@ -51,7 +51,6 @@ const SiteHeader = forwardRef<HTMLElement, SiteHeaderProps>(({ reveal = false },
         <Link to="/our-journey" aria-current={pathname === '/our-journey' ? 'page' : undefined}>JOURNEY</Link>
         <Link to="/projects" aria-current={pathname === '/projects' ? 'page' : undefined}>PROJECTS</Link>
         <Link to="/team" aria-current={pathname === '/team' ? 'page' : undefined}>TEAM</Link>
-        <Link to="/admin-preview/login" aria-current={pathname.startsWith('/admin-preview') ? 'page' : undefined}>ADMIN SIGN IN</Link>
       </nav>
       <Link className="header-cta" to="/#contact" {...revealProps}>
         JOIN THE FLIGHT <span aria-hidden="true">↗</span>
@@ -67,7 +66,6 @@ const SiteHeader = forwardRef<HTMLElement, SiteHeaderProps>(({ reveal = false },
           <Link to="/our-journey" aria-current={pathname === '/our-journey' ? 'page' : undefined} onClick={closeMenu}>JOURNEY</Link>
           <Link to="/projects" aria-current={pathname === '/projects' ? 'page' : undefined} onClick={closeMenu}>PROJECTS</Link>
           <Link to="/team" aria-current={pathname === '/team' ? 'page' : undefined} onClick={closeMenu}>TEAM</Link>
-          <Link to="/admin-preview/login" aria-current={pathname.startsWith('/admin-preview') ? 'page' : undefined} onClick={closeMenu}>ADMIN SIGN IN</Link>
           <Link className="mobile-menu-cta" to="/#contact" onClick={closeMenu}>
             JOIN THE FLIGHT <span aria-hidden="true">↗</span>
           </Link>

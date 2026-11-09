@@ -30,6 +30,7 @@ export interface RegistrationInput {
   captainName?: string
   captainPhone?: string
   captainEmail?: string
+  paymentProofUrl?: string
   members?: TeamMemberInput[]
 }
 

@@ -46,6 +46,7 @@ class EventManagementIntegrationTest {
               "posterUrl": "/images/events/workshop.png",
               "eligibility": "Open to SIT students.",
               "feeInr": 250.00,
+              "paymentMethod": "RAZORPAY",
               "registrationType": "TEAM",
               "registrationDeadline": "2031-02-08T23:59:00+05:30",
               "capacity": 24,

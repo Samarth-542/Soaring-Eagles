@@ -18,5 +18,6 @@ public record RegistrationRequest(
         @Size(max = 120) String captainName,
         @Size(max = 30) String captainPhone,
         @Email @Size(max = 254) String captainEmail,
+        @Size(max = 2048) String paymentProofUrl,
         @Size(max = 30) List<@Valid TeamMemberRequest> members) {
 }

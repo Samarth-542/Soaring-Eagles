@@ -109,7 +109,7 @@ function EventsPage() {
               ))}
             </ul>
           )}
-          <EventTimeline />
+          <EventTimeline events={archivedEvents} />
         </section>
       </main>
 

@@ -58,6 +58,16 @@ public class Event {
     @Column(name = "registration_type", nullable = false, length = 20)
     private RegistrationType registrationType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false, length = 20)
+    private PaymentMethod paymentMethod = PaymentMethod.RAZORPAY;
+
+    @Column(name = "google_form_link", length = 2048)
+    private String googleFormLink;
+
+    @Column(name = "google_form_qr_url", length = 2048)
+    private String googleFormQrUrl;
+
     @Column(name = "registration_deadline", nullable = false)
     private OffsetDateTime registrationDeadline;
 
@@ -116,6 +126,9 @@ public class Event {
         eligibility = request.eligibility().trim();
         feeInr = request.feeInr();
         registrationType = request.registrationType();
+        paymentMethod = request.paymentMethod() == null ? PaymentMethod.RAZORPAY : request.paymentMethod();
+        googleFormLink = normalizeOptional(request.googleFormLink());
+        googleFormQrUrl = normalizeOptional(request.googleFormQrUrl());
         registrationDeadline = request.registrationDeadline();
         capacity = request.capacity();
         minimumTeamSize = request.minimumTeamSize();
@@ -172,6 +185,9 @@ public class Event {
     public String getEligibility() { return eligibility; }
     public BigDecimal getFeeInr() { return feeInr; }
     public RegistrationType getRegistrationType() { return registrationType; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public String getGoogleFormLink() { return googleFormLink; }
+    public String getGoogleFormQrUrl() { return googleFormQrUrl; }
     public OffsetDateTime getRegistrationDeadline() { return registrationDeadline; }
     public int getCapacity() { return capacity; }
     public Integer getMinimumTeamSize() { return minimumTeamSize; }

@@ -1,12 +1,37 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { pastEvents } from '../../data/events'
+import { pastEvents, type ClubEvent } from '../../data/events'
 import useReducedMotion from '../../hooks/useReducedMotion'
+import type { PublicEventRecord } from '../../lib/eventsApi'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function EventTimeline() {
+interface EventTimelineProps {
+  events?: PublicEventRecord[]
+}
+
+function toTimelineEvent(event: PublicEventRecord): ClubEvent {
+  const date = new Date(event.startsAt)
+  const formattedDate = new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  }).format(date)
+
+  return {
+    title: event.title,
+    date: formattedDate,
+    sortDate: event.startsAt.slice(0, 10),
+    venue: event.venue,
+    about: event.archiveStory || event.description,
+    outcome: event.archiveResults || 'The event concluded successfully and was added to the club timeline.',
+    image: event.posterUrl || event.archivePhotos[0] || '/images/events/liftoff.png',
+  }
+}
+
+export default function EventTimeline({ events }: EventTimelineProps) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion()
 
@@ -75,13 +100,17 @@ export default function EventTimeline() {
     }
   }, [reducedMotion])
 
+  const timelineEvents = (events && events.length > 0 ? events.filter((event) => event.ended).map(toTimelineEvent) : pastEvents)
+    .slice()
+    .sort((left, right) => right.sortDate.localeCompare(left.sortDate))
+
   return (
     <div className="event-timeline" ref={timelineRef}>
       <span className="event-timeline-track" aria-hidden="true" />
       <span className="event-timeline-progress" aria-hidden="true" />
       <ol className="event-timeline-list" aria-label="Past events, newest first">
-        {pastEvents.map((event, index) => (
-          <li className="event-timeline-item" key={event.title}>
+        {timelineEvents.map((event, index) => (
+          <li className="event-timeline-item" key={`${event.title}-${event.sortDate}`}>
             <div className="event-timeline-date">
               <span className="event-timeline-marker" aria-hidden="true" />
               <time dateTime={event.sortDate}>

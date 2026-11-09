@@ -29,7 +29,9 @@ public class RegistrationEmailDispatcher {
     public void dispatchPending() {
         for (UUID deliveryId : claimService.claimDue(20)) {
             try {
-                String providerId = emailGateway.send(deliveryId, contentService.buildMessage(deliveryId));
+                String providerId = emailGateway.send(
+                        "registration-confirmation/" + deliveryId,
+                        contentService.buildMessage(deliveryId));
                 claimService.markDelivered(deliveryId, providerId);
             } catch (EmailProviderUnavailableException exception) {
                 LOGGER.warn("Registration confirmation email delivery {} failed; it will be retried.", deliveryId, exception);

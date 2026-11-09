@@ -10,6 +10,7 @@ import java.util.UUID;
 import in.soaringeagles.api.registrations.RegistrationCapacityService;
 import in.soaringeagles.api.integrations.payment.PaymentGateway;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,16 +22,19 @@ public class EventService {
     private final EventRepository eventRepository;
     private final RegistrationCapacityService registrationCapacityService;
     private final PaymentGateway paymentGateway;
+    private final JdbcTemplate jdbc;
     private final Clock clock;
 
     EventService(
             EventRepository eventRepository,
             RegistrationCapacityService registrationCapacityService,
             PaymentGateway paymentGateway,
+            JdbcTemplate jdbc,
             Clock clock) {
         this.eventRepository = eventRepository;
         this.registrationCapacityService = registrationCapacityService;
         this.paymentGateway = paymentGateway;
+        this.jdbc = jdbc;
         this.clock = clock;
     }
 
@@ -85,6 +89,27 @@ public class EventService {
         return toView(eventRepository.saveAndFlush(event), nowUtc());
     }
 
+    public void delete(UUID id) {
+        Event event = eventRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
+        String registrationsForEvent = "SELECT id FROM event_registrations WHERE event_id = ?";
+        jdbc.update(
+                "DELETE FROM registration_email_deliveries WHERE registration_id IN ("
+                        + registrationsForEvent + ")",
+                id);
+        jdbc.update(
+                "DELETE FROM payment_attempts WHERE registration_id IN ("
+                        + registrationsForEvent + ")",
+                id);
+        jdbc.update(
+                "DELETE FROM registration_team_members WHERE registration_id IN ("
+                        + registrationsForEvent + ")",
+                id);
+        jdbc.update("DELETE FROM event_registrations WHERE event_id = ?", id);
+        eventRepository.delete(event);
+        eventRepository.flush();
+    }
+
     @Transactional(readOnly = true)
     public List<EventView> listAdmin() {
         OffsetDateTime now = nowUtc();
@@ -125,6 +150,9 @@ public class EventService {
         requireIndiaStandardTime(request.startsAt());
         requireIndiaStandardTime(request.endsAt());
         requireIndiaStandardTime(request.registrationDeadline());
+        if (request.paymentMethod() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select a payment method for the event.");
+        }
         if (!request.endsAt().isAfter(request.startsAt())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The event end must be after its start.");
         }
@@ -139,6 +167,15 @@ public class EventService {
             }
         } else if (request.minimumTeamSize() != null || request.maximumTeamSize() != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team size limits apply only to team events.");
+        }
+        if (request.paymentMethod() == PaymentMethod.GOOGLE_FORM) {
+            if (request.googleFormLink() == null || request.googleFormLink().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A Google Form link is required when Google Form payment is selected.");
+            }
+            validateMediaUrl(request.googleFormLink());
+            if (request.googleFormQrUrl() != null && !request.googleFormQrUrl().isBlank()) {
+                validateMediaUrl(request.googleFormQrUrl());
+            }
         }
         validateMediaUrl(request.posterUrl());
         if (request.archivePhotos() != null) {
@@ -208,6 +245,9 @@ public class EventService {
                 event.getEligibility(),
                 event.getFeeInr(),
                 event.getRegistrationType(),
+                event.getPaymentMethod(),
+                event.getGoogleFormLink(),
+                event.getGoogleFormQrUrl(),
                 event.getRegistrationDeadline(),
                 event.getCapacity(),
                 remainingCapacity,
@@ -237,6 +277,9 @@ public class EventService {
                 view.eligibility(),
                 view.feeInr(),
                 view.registrationType(),
+                view.paymentMethod(),
+                view.googleFormLink(),
+                view.googleFormQrUrl(),
                 view.registrationDeadline(),
                 view.capacity(),
                 view.remainingCapacity(),
@@ -245,7 +288,7 @@ public class EventService {
                 view.status(),
                 view.ended(),
                 view.registrationWindowOpen(),
-                event.getFeeInr().signum() == 0 || paymentGateway.isCheckoutConfigured(),
+                event.getFeeInr().signum() == 0 || paymentGateway.isCheckoutConfigured() || view.paymentMethod() == PaymentMethod.GOOGLE_FORM,
                 view.archiveStory(),
                 view.archiveResults(),
                 view.archivePhotos());

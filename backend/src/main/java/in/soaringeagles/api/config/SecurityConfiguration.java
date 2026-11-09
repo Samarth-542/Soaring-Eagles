@@ -49,6 +49,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/content/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/contact").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/events/*/registrations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/registrations/*/status").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/registrations/*/retry").permitAll()

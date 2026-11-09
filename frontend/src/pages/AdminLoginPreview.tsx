@@ -146,7 +146,6 @@ function AdminLoginPreview() {
 
           <div className="admin-login-card-footer">
             <span><i aria-hidden="true" /> SERVER-VERIFIED SIGN-IN</span>
-            <Link to="/admin-preview">VIEW PORTAL DESIGN <span aria-hidden="true">→</span></Link>
           </div>
         </section>
       </section>

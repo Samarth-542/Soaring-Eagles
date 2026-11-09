@@ -2,6 +2,7 @@ package in.soaringeagles.api;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -27,9 +28,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +53,7 @@ class RegistrationPaymentIntegrationTest {
               "posterUrl": null,
               "eligibility": "Open to students.",
               "feeInr": 250.00,
+              "paymentMethod": "RAZORPAY",
               "registrationType": "TEAM",
               "registrationDeadline": "2031-02-08T23:59:00+05:30",
               "capacity": 1,
@@ -85,6 +89,9 @@ class RegistrationPaymentIntegrationTest {
 
     @Autowired
     private MutableClock clock;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void resetClock() {
@@ -199,6 +206,58 @@ class RegistrationPaymentIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PENDING_PAYMENT"))
                 .andExpect(jsonPath("$.razorpayOrderId").exists());
+    }
+
+    @Test
+    void deletingEventRemovesRegistrationsAndTheirLinkedRecords() throws Exception {
+        String paidEventId = createPublishedEvent(VALID_EVENT);
+        String paidRegistration = mockMvc.perform(post("/api/v1/events/{eventId}/registrations", paidEventId)
+                        .with(csrf())
+                        .header("Idempotency-Key", "bf19a208-3fbb-4a2d-b1ef-44a32dd4e217")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(TEAM_REGISTRATION))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String paidRegistrationId = read(paidRegistration, "registrationId");
+
+        String freeEventId = createPublishedEvent(VALID_EVENT.replace("250.00", "0.00"));
+        String freeRegistration = mockMvc.perform(post("/api/v1/events/{eventId}/registrations", freeEventId)
+                        .with(csrf())
+                        .header("Idempotency-Key", "a6c634a5-98cd-4ac8-86c1-12f617079eb1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(TEAM_REGISTRATION))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String freeRegistrationId = read(freeRegistration, "registrationId");
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
+        mockMvc.perform(delete("/api/v1/admin/events/{eventId}", paidEventId)
+                        .with(user(TestAdminCredentials.EMAIL).roles("ADMIN"))
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/v1/admin/events/{eventId}", freeEventId)
+                        .with(user(TestAdminCredentials.EMAIL).roles("ADMIN"))
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        assertThatCountIsZero("event_registrations", "id", paidRegistrationId);
+        assertThatCountIsZero("event_registrations", "id", freeRegistrationId);
+        assertThatCountIsZero("registration_team_members", "registration_id", paidRegistrationId);
+        assertThatCountIsZero("payment_attempts", "registration_id", paidRegistrationId);
+        assertThatCountIsZero("registration_email_deliveries", "registration_id", freeRegistrationId);
+
+        mockMvc.perform(get("/api/v1/events/{eventId}", paidEventId))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/registrations/{registrationId}/status", paidRegistrationId))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/registrations/{registrationId}/status", freeRegistrationId))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -328,6 +387,14 @@ class RegistrationPaymentIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().isOk());
         return id;
+    }
+
+    private void assertThatCountIsZero(String table, String column, String registrationId) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM " + table + " WHERE " + column + " = ?",
+                Integer.class,
+                java.util.UUID.fromString(registrationId));
+        org.assertj.core.api.Assertions.assertThat(count).isZero();
     }
 
     private String capturedPayment(String orderId, int amount) {

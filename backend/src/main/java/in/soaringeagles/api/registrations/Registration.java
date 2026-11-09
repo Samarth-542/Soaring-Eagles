@@ -78,6 +78,9 @@ public class Registration {
     @Column(name = "captain_email", length = 254)
     private String captainEmail;
 
+    @Column(name = "payment_proof_url", length = 2048)
+    private String paymentProofUrl;
+
     @ElementCollection
     @CollectionTable(
             name = "registration_team_members",
@@ -109,6 +112,7 @@ public class Registration {
         this.holdExpiresAt = holdExpiresAt;
         createdAt = now;
         updatedAt = now;
+        paymentProofUrl = trim(request.paymentProofUrl());
         if (registrationType == RegistrationType.INDIVIDUAL) {
             individualName = trim(request.name());
             individualPhone = trim(request.phone());
@@ -127,6 +131,7 @@ public class Registration {
 
     void updateDetails(RegistrationRequest request, Instant now) {
         members.clear();
+        paymentProofUrl = trim(request.paymentProofUrl());
         if (registrationType == RegistrationType.INDIVIDUAL) {
             individualName = trim(request.name());
             individualPhone = trim(request.phone());
@@ -196,6 +201,7 @@ public class Registration {
     public String getCaptainName() { return captainName; }
     public String getCaptainPhone() { return captainPhone; }
     public String getCaptainEmail() { return captainEmail; }
+    public String getPaymentProofUrl() { return paymentProofUrl; }
     public List<RegistrationTeamMember> getMembers() { return List.copyOf(members); }
     public Instant getHoldExpiresAt() { return holdExpiresAt; }
     public Instant getCreatedAt() { return createdAt; }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { PublicEventRecord } from '../lib/eventsApi'
+import { uploadContentImage } from '../lib/contentApi'
 import {
   fetchRegistrationStatus,
   retryRegistration,
@@ -92,6 +93,7 @@ function RegistrationForm({ event }: { event: PublicEventRecord }) {
   const [error, setError] = useState('')
   const [checkout, setCheckout] = useState<CheckoutStart | null>(null)
   const [checkoutMessage, setCheckoutMessage] = useState('')
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null)
   const [individual, setIndividual] = useState({
     name: '',
     phone: '',
@@ -174,7 +176,14 @@ function RegistrationForm({ event }: { event: PublicEventRecord }) {
       : individual
 
     try {
-      const response = await startRegistration(event.id, idempotencyKey.current, input)
+      let paymentProofUrl: string | undefined
+      if (event.paymentMethod === 'GOOGLE_FORM' && paymentProofFile) {
+        paymentProofUrl = (await uploadContentImage(paymentProofFile, 'events')).publicUrl
+      }
+      const response = await startRegistration(event.id, idempotencyKey.current, {
+        ...input,
+        paymentProofUrl,
+      })
       setCheckout(response)
       if (response.status === 'PENDING_PAYMENT' && response.razorpayOrderId) {
         await openCheckout(response, event.registrationType === 'TEAM'
@@ -316,6 +325,27 @@ function RegistrationForm({ event }: { event: PublicEventRecord }) {
               <label>Department<input required maxLength={160} value={individual.department} onChange={(e) => setIndividual({ ...individual, department: e.target.value })} /></label>
               <label>Institution<input required maxLength={200} value={individual.institution} onChange={(e) => setIndividual({ ...individual, institution: e.target.value })} /></label>
             </>
+          )}
+          {event.paymentMethod === 'GOOGLE_FORM' && (
+            <div className="registration-google-form">
+              <p className="registration-hint">Payment method: Google Form</p>
+              {event.googleFormQrUrl && (
+                <div className="registration-qr-box">
+                  <img src={event.googleFormQrUrl} alt="Google Form payment QR code" />
+                </div>
+              )}
+              {event.googleFormLink && (
+                <a href={event.googleFormLink} target="_blank" rel="noreferrer">Open payment form</a>
+              )}
+              <label>
+                Upload payment screenshot (optional)
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+                  onChange={(changeEvent) => setPaymentProofFile(changeEvent.target.files?.[0] ?? null)}
+                />
+              </label>
+            </div>
           )}
           <p className="registration-hint">
             Contact and participant details are shared only with authorized event admins and the payment provider.

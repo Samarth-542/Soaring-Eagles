@@ -5,16 +5,16 @@ robotics club at Siddaganga Institute of Technology in Tumakuru, India. This
 repository is the rebuild; the older website in the parent directory is a
 reference project, not the application described here.
 
-> **Project status (4 November 2026):** Public event discovery and individual/
+> **Project status (5 November 2026):** Public event discovery and individual/
 > team registration, authenticated event/registration management, database-
 > backed Team/Projects/Journey content, image uploads, and admin-account
-> management are implemented. The backend uses cookie-based admin sessions,
+> management are implemented, as is the contact inbox. The backend uses cookie-based admin sessions,
 > CSRF protection, login throttling, capacity holds, signed payment webhooks,
 > and a Resend email outbox. The owner reports the Supabase database is
 > connected and the `se_data` bucket is public; production Storage configuration
 > has not been independently verified. Paid checkout remains disabled pending
 > Razorpay sandbox/webhook testing, and live Resend delivery is unverified.
-> Contact submission/inbox, site settings, selected-recruit moderation,
+> Selected-recruit moderation,
 > password reset, several public pages, CI, and production deployment remain
 > incomplete.
 
@@ -25,7 +25,8 @@ The current Home includes:
 - A cinematic hero with an interactive 3D drone model.
 - An upcoming-events section backed by published event data, with explicit
   loading, error, and empty states.
-- Club contact information and a validated contact form.
+- Club contact information and a validated contact form that saves submissions
+  for review in the authenticated admin inbox.
 - A responsive layout, reduced-motion support, and a footer.
 - A separate `/projects` page with a GSAP-animated timeline of published
   database-backed project content.
@@ -36,15 +37,16 @@ The current Home includes:
   console; it contains no live or sample records.
 - An `/admin-preview/login` sign-in flow connected to Spring Security and
   `/admin`, a server-verified session status page. Authenticated Events,
-  Registrations, Team, Projects, Journey, and Admin accounts management
-  modules are connected to protected APIs.
+  Registrations, Contact inbox, Team, Projects, Journey, and Admin accounts
+  management modules are connected to protected APIs.
 - A separate `/team` route backed by published Team content from the API;
   groups without entries have empty states. Private email and phone fields are
   not displayed.
 
-The contact form's `/api/contact` endpoint does not exist yet, so messages are
-not delivered by the website. The form explains this and provides an email
-fallback: [tseofficial2011@gmail.com](mailto:tseofficial2011@gmail.com).
+Contact form submissions are stored in the database and can be reviewed,
+marked read/unread, or archived in `/admin` → Contact inbox. No email is sent
+when the form is submitted. Optional attachments are stored in a private
+Supabase Storage bucket and can be downloaded by signed-in admins.
 Event registration uses a 10-minute capacity hold and confirms paid entries
 only after a valid Razorpay webhook. Remaining capacity is returned by the
 event API. Paid checkout remains disabled until Razorpay test credentials and
@@ -149,7 +151,7 @@ deactivated. Password reset or changing an existing account's password is not
 available in the portal yet.
 
 `/admin` verifies the session and provides event management, registrations,
-Team/Projects/Journey content editing, and admin-account management.
+the contact inbox, Team/Projects/Journey content editing, and admin-account management.
 `/admin-preview` remains a static design preview and is not an authenticated
 admin area.
 
@@ -166,8 +168,12 @@ without overwriting matching records. Public reads are available at
 `GET /api/v1/content/team`, `/projects`, and `/journey`; authenticated
 management is available under `/api/v1/admin/content/`. The public Team,
 Projects, and Journey pages and their admin editors read and write these
-database records. Contact inbox, site settings, and analytics still need their
-application APIs and UI. Admin image uploads use
+database records. Contact submissions are created at `POST /api/v1/contact`;
+the authenticated inbox uses `/api/v1/admin/contact-messages` to list, view,
+and update message status. Attachment downloads require an authenticated
+admin session. Public contact details are available at
+`GET /api/v1/content/site-details`; admins can read and update them under
+`/api/v1/admin/site-details`. Admin image uploads use
 `POST /api/v1/admin/content/images` and store image files in Supabase Storage,
 with metadata recorded in PostgreSQL.
 
@@ -183,7 +189,9 @@ Event endpoints are:
   future scheduled events remain private.
 - Admin writes (server session required): `GET` and `POST /api/v1/admin/events`,
   `PUT /api/v1/admin/events/{id}`, and `POST /api/v1/admin/events/{id}/schedule`,
-  `/publish`, or `/close`.
+  `/publish`, or `/close`; `DELETE /api/v1/admin/events/{id}` permanently deletes
+  the event and its linked registrations, participant/team details, payment
+  attempts, and confirmation-email history.
 - Event times use India Standard Time (UTC+05:30). Admins can upload posters
   and archive photos as JPEG or PNG files.
 
@@ -217,6 +225,10 @@ backend environment. Set `SUPABASE_STORAGE_PUBLIC_BUCKET` if you choose a
 different bucket name. The service-role key must never be exposed to the
 frontend or committed to source control. The admin uploader accepts JPEG and
 PNG images up to 10 MB per image.
+For contact form attachments, also create a **private** bucket named
+`se_private` (or configure `SUPABASE_STORAGE_PRIVATE_BUCKET`). Contact
+attachments are never stored in the public bucket; downloads are served only
+after admin authentication.
 For PowerShell:
 
 ```powershell
@@ -227,6 +239,7 @@ $env:SUPABASE_DB_PASSWORD = "<database-password>"
 $env:SUPABASE_URL = "https://<project-ref>.supabase.co"
 $env:SUPABASE_SERVICE_ROLE_KEY = "<server-only-service-role-key>"
 $env:SUPABASE_STORAGE_PUBLIC_BUCKET = "se_data"
+$env:SUPABASE_STORAGE_PRIVATE_BUCKET = "se_private"
 $env:APP_ADMIN_EMAIL = "<owner-provisioned-admin-email>"
 $env:APP_ADMIN_PASSWORD_HASH = "<BCrypt-hash-from-secure-provisioning>"
 $env:APP_CORS_ALLOWED_ORIGINS = "https://<frontend-origin>"
@@ -244,8 +257,8 @@ Create a public Supabase Storage bucket named `se_data` (or configure
 `SUPABASE_SERVICE_ROLE_KEY` on the backend only; never use it in the frontend or
 commit it. Admin uploads accept JPEG and PNG images up to 10 MB and store them
 in the bucket with their database metadata.
-Contact inbox, site settings, analytics, and admin password reset are not
-implemented. Razorpay and Resend integrations require owner-provisioned
+Analytics and admin password reset are not implemented.
+Razorpay and Resend integrations require owner-provisioned
 credentials; do not enable paid checkout until its sandbox flow has been
 verified. Do not start the service until the initial admin hash and exact
 frontend-origin allowlist are configured.
@@ -288,8 +301,8 @@ npm run preview  # Preview the production build locally
 
 The full product includes public Team, Projects, Events, and Journey pages;
 event registration/payment; and a protected admin portal. Selected-recruit
-profile submission, contact inbox/replies, public site-details management,
-password reset, and production release remain roadmap items. See
+profile submission, replies from the admin portal, password reset, and
+production release remain roadmap items. See
 [prd.md](./prd.md) and [phase.md](./phase.md) for requirements and status.
 
 ## Project boundaries and security

@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,6 +59,12 @@ public class AdminEventController {
     @PostMapping("/{id}/close")
     public EventView close(@PathVariable UUID id) {
         return eventService.close(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        eventService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     public record ScheduleRequest(@NotNull OffsetDateTime publishAt) {

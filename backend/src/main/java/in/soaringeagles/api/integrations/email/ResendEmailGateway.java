@@ -1,7 +1,8 @@
 package in.soaringeagles.api.integrations.email;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class ResendEmailGateway implements EmailGateway {
     }
 
     @Override
-    public String send(UUID deliveryId, EmailMessage message) {
+    public String send(String idempotencyKey, EmailMessage message) {
         if (!properties.isConfigured()) {
             throw new EmailProviderUnavailableException();
         }
@@ -32,14 +33,10 @@ public class ResendEmailGateway implements EmailGateway {
                     .uri("/emails")
                     .headers(headers -> {
                         headers.setBearerAuth(properties.apiKey());
-                        headers.set("Idempotency-Key", "registration-confirmation/" + deliveryId);
+                        headers.set("Idempotency-Key", idempotencyKey);
                     })
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of(
-                            "from", properties.fromAddress(),
-                            "to", message.to(),
-                            "subject", message.subject(),
-                            "text", message.text()))
+                    .body(requestBody(message))
                     .retrieve()
                     .body(ResendResponse.class);
             if (response == null || response.id() == null || response.id().isBlank()) {
@@ -49,6 +46,15 @@ public class ResendEmailGateway implements EmailGateway {
         } catch (RestClientException exception) {
             throw new EmailProviderUnavailableException(exception);
         }
+    }
+
+    private Map<String, Object> requestBody(EmailMessage message) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("from", properties.fromAddress());
+        body.put("to", List.of(message.to()));
+        body.put("subject", message.subject());
+        body.put("text", message.text());
+        return body;
     }
 
     private record ResendResponse(String id) {

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { fetchCsrfToken } from '../lib/adminAuth'
 
 const maxAttachmentSize = 10 * 1024 * 1024
 const allowedAttachmentTypes = new Set(['application/pdf', 'image/jpeg', 'image/png'])
 const allowedAttachmentExtensions = /\.(pdf|jpe?g|png)$/i
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
-export default function HomeContactForm() {
+export default function HomeContactForm({ contactEmail }: { contactEmail: string | null }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionMessage, setSubmissionMessage] = useState('')
   const [submissionFailed, setSubmissionFailed] = useState(false)
@@ -37,8 +39,12 @@ export default function HomeContactForm() {
     setSubmissionMessage('')
 
     try {
-      const response = await fetch('/api/contact', {
+      const csrfToken = await fetchCsrfToken()
+      const response = await fetch(`${apiBaseUrl}/api/v1/contact`, {
         method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { 'X-XSRF-TOKEN': csrfToken },
         body: formData,
       })
 
@@ -47,7 +53,7 @@ export default function HomeContactForm() {
       }
 
       form.reset()
-      setSubmissionMessage('Your message has been sent. Thank you for getting in touch.')
+      setSubmissionMessage('Your message has been submitted. The team will review it in the admin portal.')
     } catch (error) {
       console.error('Unable to submit the contact form.', error)
       setSubmissionFailed(true)
@@ -104,8 +110,10 @@ export default function HomeContactForm() {
         </button>
       </div>
       <p className="contact-form-note">
-        Online submissions are not connected yet. In the meantime, email{' '}
-        <a href="mailto:tseofficial2011@gmail.com">tseofficial2011@gmail.com</a>.
+        Your message is saved securely for the team to review.
+        {contactEmail && <> You can also email{' '}
+          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+        </>}
       </p>
     </form>
   )

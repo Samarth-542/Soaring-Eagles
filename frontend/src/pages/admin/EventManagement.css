@@ -224,6 +224,17 @@
   font-size: 0.52rem;
 }
 
+.admin-event-record-actions button.is-danger {
+  border-color: rgba(224, 112, 103, 0.42);
+  color: #f0aaa3;
+  background: rgba(224, 112, 103, 0.08);
+}
+
+.admin-event-record-actions button.is-danger:hover:not(:disabled) {
+  border-color: rgba(224, 112, 103, 0.75);
+  background: rgba(224, 112, 103, 0.15);
+}
+
 @media (max-width: 760px) {
   .admin-event-form {
     grid-template-columns: minmax(0, 1fr);

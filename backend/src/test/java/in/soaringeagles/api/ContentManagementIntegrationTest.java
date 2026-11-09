@@ -105,6 +105,7 @@ class ContentManagementIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.detail").value(
-                        "Image uploads are unavailable. Configure Supabase Storage on the backend."));
+                        "Image uploads require SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the backend. "
+                                + "Configure a public Supabase Storage bucket (default: se_data) and restart the API."));
     }
 }

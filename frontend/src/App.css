@@ -969,6 +969,16 @@
   overflow-wrap: anywhere;
 }
 
+.contact-information-item address {
+  white-space: pre-line;
+}
+
+.contact-information-status {
+  color: var(--paper-dim);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
 .contact-information-item:nth-child(2) a,
 .contact-information-item:nth-child(3) a {
   color: var(--accent);

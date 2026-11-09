@@ -69,6 +69,7 @@ app:
       url: ${SUPABASE_URL:}
       service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
       public-bucket: ${SUPABASE_STORAGE_PUBLIC_BUCKET:se_data}
+      private-bucket: ${SUPABASE_STORAGE_PRIVATE_BUCKET:se_private}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
 

@@ -48,7 +48,8 @@ public class ContentImageStorageService {
         if (!properties.isConfigured()) {
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,
-                    "Image uploads are unavailable. Configure Supabase Storage on the backend.");
+                    "Image uploads require SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the backend. "
+                            + "Configure a public Supabase Storage bucket (default: se_data) and restart the API.");
         }
         if (file == null || file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose an image to upload.");

@@ -31,6 +31,7 @@ export interface AdminRegistrationRecord {
   captainName: string | null
   captainPhone: string | null
   captainEmail: string | null
+  paymentProofUrl: string | null
   members: AdminRegistrationMember[]
   paymentStatus: 'CREATING' | 'READY' | 'FAILED' | 'CAPTURED' | null
   emailDeliveryStatus: 'PENDING' | 'SENDING' | 'DELIVERED' | 'FAILED' | null

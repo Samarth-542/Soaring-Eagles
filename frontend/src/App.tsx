@@ -16,6 +16,8 @@ import OurJourneyPage from './pages/OurJourneyPage'
 import ProjectsPage from './pages/ProjectsPage'
 import TeamPage from './pages/TeamPage'
 import { useHeroReveal } from './components/HeroReveal'
+import { fetchPublicSiteDetails } from './lib/contentApi'
+import type { SiteDetails } from './lib/contentApi'
 import { fetchPublicEvents } from './lib/eventsApi'
 import type { PublicEventRecord } from './lib/eventsApi'
 
@@ -41,6 +43,8 @@ function HomePage() {
   const [nextEvent, setNextEvent] = useState<PublicEventRecord | null>(null)
   const [isLoadingEvents, setIsLoadingEvents] = useState(true)
   const [eventLoadError, setEventLoadError] = useState('')
+  const [siteDetails, setSiteDetails] = useState<SiteDetails | null>(null)
+  const [siteDetailsLoadError, setSiteDetailsLoadError] = useState('')
   const { overlayRef, introDismissed, startReveal } = useHeroReveal(heroRef, headerRef)
   const handleModelReady = useCallback((model?: Group, riseDistance?: number) => {
     startReveal(model, riseDistance)
@@ -61,6 +65,20 @@ function HomePage() {
       })
       .finally(() => {
         if (active) setIsLoadingEvents(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    fetchPublicSiteDetails()
+      .then((details) => {
+        if (active) setSiteDetails(details)
+      })
+      .catch(() => {
+        if (active) setSiteDetailsLoadError('Public contact information could not be loaded.')
       })
     return () => {
       active = false
@@ -152,34 +170,46 @@ function HomePage() {
             <div className="contact-information-card">
               <h2 id="contact-title">Contact Information</h2>
               <div className="contact-information-list">
-                <div className="contact-information-item">
-                  <span className="contact-information-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
-                  </span>
-                  <div><h3>Email</h3><a href="mailto:tseofficial2011@gmail.com">tseofficial2011@gmail.com</a></div>
-                </div>
-                <div className="contact-information-item">
-                  <span className="contact-information-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M7 9v12M7 5.5v.1M11 21v-7.5a4.5 4.5 0 0 1 9 0V21M3 9h8v12H3z" /></svg>
-                  </span>
-                  <div><h3>LinkedIn</h3><a href="https://linkedin.com/in/soaring-eagles-a7a19831b" target="_blank" rel="noreferrer">linkedin.com/in/soaring-eagles-a7a19831b</a></div>
-                </div>
-                <div className="contact-information-item">
-                  <span className="contact-information-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M22 5.9a8 8 0 0 1-2.4.7 4.2 4.2 0 0 0 1.8-2.3 8.3 8.3 0 0 1-2.7 1 4.1 4.1 0 0 0-7 3.7 11.7 11.7 0 0 1-8.5-4.3 4.1 4.1 0 0 0 1.3 5.5 4 4 0 0 1-1.9-.5v.1a4.1 4.1 0 0 0 3.3 4 4 4 0 0 1-1.8.1 4.1 4.1 0 0 0 3.8 2.8A8.3 8.3 0 0 1 2 18.4 11.7 11.7 0 0 0 20 8.5v-.6A8.2 8.2 0 0 0 22 5.9Z" /></svg>
-                  </span>
-                  <div><h3>X (Twitter)</h3><a href="https://x.com/TSE_015" target="_blank" rel="noreferrer">x.com/TSE_015</a></div>
-                </div>
-                <div className="contact-information-item">
-                  <span className="contact-information-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                  </span>
-                  <div><h3>Location</h3><address>Soaring Eagles Aeromodelling Lab<br />Near Mechanical Block,<br />Siddaganga Institute of Technology<br />Tumkur, 572103</address></div>
-                </div>
+                {siteDetails ? (
+                  <>
+                    <div className="contact-information-item">
+                      <span className="contact-information-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+                      </span>
+                      <div><h3>Email</h3><a href={`mailto:${siteDetails.email}`}>{siteDetails.email}</a></div>
+                    </div>
+                    {siteDetails.linkedinUrl && (
+                      <div className="contact-information-item">
+                        <span className="contact-information-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24"><path d="M7 9v12M7 5.5v.1M11 21v-7.5a4.5 4.5 0 0 1 9 0V21M3 9h8v12H3z" /></svg>
+                        </span>
+                        <div><h3>LinkedIn</h3><a href={siteDetails.linkedinUrl} target="_blank" rel="noreferrer">{siteDetails.linkedinUrl.replace(/^https?:\/\//, '')}</a></div>
+                      </div>
+                    )}
+                    {siteDetails.xUrl && (
+                      <div className="contact-information-item">
+                        <span className="contact-information-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24"><path d="M22 5.9a8 8 0 0 1-2.4.7 4.2 4.2 0 0 0 1.8-2.3 8.3 8.3 0 0 1-2.7 1 4.1 4.1 0 0 0-7 3.7 11.7 11.7 0 0 1-8.5-4.3 4.1 4.1 0 0 0 1.3 5.5 4 4 0 0 1-1.9-.5v.1a4.1 4.1 0 0 0 3.3 4 4 4 0 0 1-1.8.1 4.1 4.1 0 0 0 3.8 2.8A8.3 8.3 0 0 1 2 18.4 11.7 11.7 0 0 0 20 8.5v-.6A8.2 8.2 0 0 0 22 5.9Z" /></svg>
+                        </span>
+                        <div><h3>X (Twitter)</h3><a href={siteDetails.xUrl} target="_blank" rel="noreferrer">{siteDetails.xUrl.replace(/^https?:\/\//, '')}</a></div>
+                      </div>
+                    )}
+                    <div className="contact-information-item">
+                      <span className="contact-information-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                      </span>
+                      <div><h3>Location</h3><address>{siteDetails.location}</address></div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="contact-information-status" role={siteDetailsLoadError ? 'alert' : 'status'}>
+                    {siteDetailsLoadError || 'Loading public contact information…'}
+                  </p>
+                )}
               </div>
             </div>
           </div>
-          <HomeContactForm />
+          <HomeContactForm contactEmail={siteDetails?.email ?? null} />
         </section>
       </main>
 
@@ -192,7 +222,11 @@ function HomePage() {
         <span className="model-credit">
           3D concept by <a href="https://sketchfab.com/Diamonddogkz" target="_blank" rel="noreferrer">Diamonddogkz</a> · Sketchfab
         </span>
-        <a href="mailto:tseofficial2011@gmail.com">GET IN TOUCH ↗</a>
+        {siteDetails ? (
+          <a href={`mailto:${siteDetails.email}`}>GET IN TOUCH ↗</a>
+        ) : (
+          <a href="#contact">GET IN TOUCH ↗</a>
+        )}
       </footer>
       {!introDismissed && <HeroIntroOverlay overlayRef={overlayRef} />}
     </>

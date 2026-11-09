@@ -79,6 +79,13 @@ export interface UploadedImage {
   sizeBytes: number
 }
 
+export interface SiteDetails {
+  email: string
+  linkedinUrl: string
+  xUrl: string
+  location: string
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     cache: 'no-store',
@@ -148,6 +155,18 @@ export function fetchPublicProjects() {
 
 export function fetchPublicJourney() {
   return request<JourneyMilestone[]>(`${contentPath}/journey`, { credentials: 'omit' })
+}
+
+export function fetchPublicSiteDetails() {
+  return request<SiteDetails>(`${contentPath}/site-details`, { credentials: 'omit' })
+}
+
+export function fetchAdminSiteDetails() {
+  return request<SiteDetails>('/api/v1/admin/site-details')
+}
+
+export function saveSiteDetails(details: SiteDetails) {
+  return mutate<SiteDetails>('/api/v1/admin/site-details', 'PUT', details)
 }
 
 export function fetchAdminTeam() {

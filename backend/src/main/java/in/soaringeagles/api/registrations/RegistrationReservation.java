@@ -12,5 +12,6 @@ record RegistrationReservation(
         BigDecimal feeInr,
         long amountPaise,
         String razorpayOrderId,
-        boolean needsOrderCreation) {
+        boolean needsOrderCreation,
+        in.soaringeagles.api.events.PaymentMethod paymentMethod) {
 }

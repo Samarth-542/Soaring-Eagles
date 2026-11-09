@@ -2,6 +2,7 @@ package in.soaringeagles.api.registrations;
 
 import java.util.UUID;
 
+import in.soaringeagles.api.events.PaymentMethod;
 import in.soaringeagles.api.integrations.payment.PaymentGateway;
 import in.soaringeagles.api.integrations.payment.PaymentProviderUnavailableException;
 import org.slf4j.Logger;
@@ -54,6 +55,20 @@ public class RegistrationService {
                     null,
                     false,
                     "Registration confirmed.");
+        }
+        if (reservation.paymentMethod() == PaymentMethod.GOOGLE_FORM) {
+            return new CheckoutStartResponse(
+                    reservation.registrationId(),
+                    reservation.state(),
+                    reservation.holdExpiresAt(),
+                    reservation.feeInr(),
+                    reservation.paymentAttemptId(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    false,
+                    "Complete the Google Form payment and upload your payment screenshot to finish registration.");
         }
         if (!reservation.needsOrderCreation()) {
             return checkoutResponse(reservation, reservation.razorpayOrderId(), null);

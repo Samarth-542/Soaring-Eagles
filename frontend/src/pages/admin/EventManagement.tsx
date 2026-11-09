@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import {
   closeEvent,
   createEvent,
+  deleteEvent,
   fetchAdminEvents,
   publishEvent,
   scheduleEvent,
@@ -22,6 +23,9 @@ interface EventForm {
   eligibility: string
   feeInr: string
   registrationType: 'INDIVIDUAL' | 'TEAM'
+  paymentMethod: 'RAZORPAY' | 'GOOGLE_FORM'
+  googleFormLink: string
+  googleFormQrUrl: string
   registrationDeadline: string
   capacity: string
   minimumTeamSize: string
@@ -42,6 +46,9 @@ const emptyForm: EventForm = {
   eligibility: '',
   feeInr: '0',
   registrationType: 'INDIVIDUAL',
+  paymentMethod: 'RAZORPAY',
+  googleFormLink: '',
+  googleFormQrUrl: '',
   registrationDeadline: '',
   capacity: '1',
   minimumTeamSize: '',
@@ -82,6 +89,9 @@ function eventToForm(event: EventRecord): EventForm {
     eligibility: event.eligibility,
     feeInr: String(event.feeInr),
     registrationType: event.registrationType,
+    paymentMethod: event.paymentMethod,
+    googleFormLink: event.googleFormLink ?? '',
+    googleFormQrUrl: event.googleFormQrUrl ?? '',
     registrationDeadline: toLocalDateTime(event.registrationDeadline),
     capacity: String(event.capacity),
     minimumTeamSize: event.minimumTeamSize === null ? '' : String(event.minimumTeamSize),
@@ -104,6 +114,9 @@ function toEventInput(form: EventForm): EventInput {
     eligibility: form.eligibility.trim(),
     feeInr: Number(form.feeInr),
     registrationType: form.registrationType,
+    paymentMethod: form.paymentMethod,
+    googleFormLink: form.googleFormLink.trim() || null,
+    googleFormQrUrl: form.googleFormQrUrl.trim() || null,
     registrationDeadline: toIstOffset(form.registrationDeadline),
     capacity: Number(form.capacity),
     minimumTeamSize: form.registrationType === 'TEAM' ? Number(form.minimumTeamSize) : null,
@@ -126,6 +139,7 @@ function EventManagement() {
   const [events, setEvents] = useState<EventRecord[]>([])
   const [form, setForm] = useState<EventForm>(emptyForm)
   const [posterFile, setPosterFile] = useState<File[]>([])
+  const [qrFile, setQrFile] = useState<File[]>([])
   const [archiveFiles, setArchiveFiles] = useState<File[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -152,6 +166,7 @@ function EventManagement() {
     setEditingId(null)
     setForm(emptyForm)
     setPosterFile([])
+    setQrFile([])
     setArchiveFiles([])
     setErrorMessage('')
     setStatusMessage('')
@@ -164,6 +179,10 @@ function EventManagement() {
       setErrorMessage('Choose a publication date and time in India Standard Time.')
       return
     }
+    if (form.paymentMethod === 'GOOGLE_FORM' && !form.googleFormLink.trim()) {
+      setErrorMessage('Add a Google Form link when Google Form is selected as the payment option.')
+      return
+    }
 
     setBusyAction(action)
     try {
@@ -172,11 +191,20 @@ function EventManagement() {
       if (posterFile[0]) {
         posterUrl = (await uploadContentImage(posterFile[0], 'events')).publicUrl
       }
+      let googleFormQrUrl = form.googleFormQrUrl.trim() || null
+      if (qrFile[0]) {
+        googleFormQrUrl = (await uploadContentImage(qrFile[0], 'events')).publicUrl
+      }
       const archivePhotoUrls = form.archivePhotos.split(/\r?\n/).map((url) => url.trim()).filter(Boolean)
       for (const file of archiveFiles) {
         archivePhotoUrls.push((await uploadContentImage(file, 'events')).publicUrl)
       }
-      const input = toEventInput({ ...form, posterUrl: posterUrl ?? '', archivePhotos: archivePhotoUrls.join('\n') })
+      const input = toEventInput({
+        ...form,
+        posterUrl: posterUrl ?? '',
+        googleFormQrUrl: googleFormQrUrl ?? '',
+        archivePhotos: archivePhotoUrls.join('\n'),
+      })
       const saved = editingId
         ? await updateEvent(editingId, input)
         : await createEvent(input)
@@ -190,6 +218,7 @@ function EventManagement() {
       setEditingId(null)
       setForm(emptyForm)
       setPosterFile([])
+      setQrFile([])
       setArchiveFiles([])
       await loadEvents()
     } catch (error) {
@@ -210,6 +239,27 @@ function EventManagement() {
       await loadEvents()
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : `The event could not be ${action}ed.`)
+    } finally {
+      setBusyAction('')
+    }
+  }
+
+  const removeEvent = async (event: EventRecord) => {
+    const confirmed = window.confirm(
+      `Permanently delete "${event.title}"? This also deletes all registrations, participant and team details, payment attempts, and confirmation-email history. This cannot be undone.`,
+    )
+    if (!confirmed) return
+
+    setErrorMessage('')
+    setStatusMessage('')
+    setBusyAction(`delete:${event.id}`)
+    try {
+      await deleteEvent(event.id)
+      if (editingId === event.id) resetForm()
+      setStatusMessage('Event and its linked registration records were permanently deleted.')
+      await loadEvents()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'The event could not be deleted.')
     } finally {
       setBusyAction('')
     }
@@ -300,6 +350,31 @@ function EventManagement() {
             </select>
           </label>
           <label>
+            Payment method
+            <select value={form.paymentMethod} onChange={(event) => setForm({ ...form, paymentMethod: event.target.value as EventForm['paymentMethod'] })}>
+              <option value="RAZORPAY">Razorpay</option>
+              <option value="GOOGLE_FORM">Google Form</option>
+            </select>
+          </label>
+          {form.paymentMethod === 'GOOGLE_FORM' && (
+            <>
+              <label className="admin-event-field-wide">
+                Google Form link
+                <input required type="url" value={form.googleFormLink} onChange={(event) => setForm({ ...form, googleFormLink: event.target.value })} />
+              </label>
+              <div className="admin-event-field-wide">
+                <ImageUploadField
+                  label="Google Form QR code"
+                  files={qrFile}
+                  onFilesChange={setQrFile}
+                  currentUrls={form.googleFormQrUrl ? [form.googleFormQrUrl] : []}
+                  onRemoveCurrent={() => setForm({ ...form, googleFormQrUrl: '' })}
+                  disabled={Boolean(busyAction)}
+                />
+              </div>
+            </>
+          )}
+          <label>
             Maximum places {form.registrationType === 'TEAM' ? '(teams)' : '(individuals)'}
             <input required type="number" min="1" step="1" value={form.capacity} onChange={(event) => setForm({ ...form, capacity: event.target.value })} />
           </label>
@@ -385,6 +460,7 @@ function EventManagement() {
                     setEditingId(event.id)
                     setForm(eventToForm(event))
                     setPosterFile([])
+                    setQrFile([])
                     setArchiveFiles([])
                     setErrorMessage('')
                     setStatusMessage('')
@@ -399,6 +475,14 @@ function EventManagement() {
                       {busyAction === `close:${event.id}` ? '…' : 'CLOSE'}
                     </button>
                   )}
+                  <button
+                    className="is-danger"
+                    type="button"
+                    disabled={Boolean(busyAction)}
+                    onClick={() => void removeEvent(event)}
+                  >
+                    {busyAction === `delete:${event.id}` ? 'DELETING…' : 'DELETE'}
+                  </button>
                 </div>
               </li>
             ))}

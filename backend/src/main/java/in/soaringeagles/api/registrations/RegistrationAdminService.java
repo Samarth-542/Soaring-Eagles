@@ -129,6 +129,7 @@ public class RegistrationAdminService {
                 registration.getCaptainName(),
                 registration.getCaptainPhone(),
                 registration.getCaptainEmail(),
+                registration.getPaymentProofUrl(),
                 members,
                 attempt == null ? null : attempt.getState(),
                 emailDelivery == null ? null : emailDelivery.getState(),

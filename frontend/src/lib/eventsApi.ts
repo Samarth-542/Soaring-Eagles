@@ -6,6 +6,7 @@ const adminEventsPath = '/api/v1/admin/events'
 
 export type EventStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'CLOSED'
 export type RegistrationType = 'INDIVIDUAL' | 'TEAM'
+export type PaymentMethod = 'RAZORPAY' | 'GOOGLE_FORM'
 
 export interface EventRecord {
   id: string
@@ -18,6 +19,9 @@ export interface EventRecord {
   eligibility: string
   feeInr: number
   registrationType: RegistrationType
+  paymentMethod: PaymentMethod
+  googleFormLink: string | null
+  googleFormQrUrl: string | null
   registrationDeadline: string
   capacity: number
   remainingCapacity: number | null
@@ -47,6 +51,9 @@ export interface EventInput {
   eligibility: string
   feeInr: number
   registrationType: RegistrationType
+  paymentMethod: PaymentMethod
+  googleFormLink: string | null
+  googleFormQrUrl: string | null
   registrationDeadline: string
   capacity: number
   minimumTeamSize: number | null
@@ -78,7 +85,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T
 }
 
-async function mutate<T>(path: string, method: 'POST' | 'PUT', body?: unknown): Promise<T> {
+async function mutate<T>(
+  path: string,
+  method: 'POST' | 'PUT' | 'DELETE',
+  body?: unknown,
+): Promise<T> {
   const csrfToken = await fetchCsrfToken()
   return request<T>(path, {
     method,
@@ -120,4 +131,8 @@ export function publishEvent(id: string) {
 
 export function closeEvent(id: string) {
   return mutate<EventRecord>(`${adminEventsPath}/${encodeURIComponent(id)}/close`, 'POST')
+}
+
+export function deleteEvent(id: string) {
+  return mutate<void>(`${adminEventsPath}/${encodeURIComponent(id)}`, 'DELETE')
 }

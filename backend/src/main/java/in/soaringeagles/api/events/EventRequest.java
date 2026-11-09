@@ -25,6 +25,9 @@ public record EventRequest(
         @NotNull @Positive Integer capacity,
         Integer minimumTeamSize,
         Integer maximumTeamSize,
+        PaymentMethod paymentMethod,
+        @Size(max = 2048) String googleFormLink,
+        @Size(max = 2048) String googleFormQrUrl,
         @Size(max = 12000) String archiveStory,
         @Size(max = 12000) String archiveResults,
         @Size(max = 20) List<@NotBlank @Size(max = 2048) String> archivePhotos) {

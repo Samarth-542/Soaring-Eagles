@@ -1,0 +1,274 @@
+.contact-inbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--paper-dim);
+  font: 0.68rem var(--font-mono);
+}
+
+.contact-inbox-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.contact-inbox-filters button,
+.contact-inbox-actions button,
+.contact-inbox-file button,
+.contact-inbox-pagination button {
+  min-height: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(245, 240, 233, 0.15);
+  border-radius: 0.35rem;
+  color: var(--paper-dim);
+  background: transparent;
+  font: 0.64rem var(--font-mono);
+  cursor: pointer;
+}
+
+.contact-inbox-filters button:hover,
+.contact-inbox-filters button.is-active,
+.contact-inbox-actions button:hover,
+.contact-inbox-file button:hover,
+.contact-inbox-pagination button:not(:disabled):hover {
+  border-color: rgba(221, 151, 107, 0.55);
+  color: var(--accent);
+}
+
+.contact-inbox-grid {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.contact-inbox-list,
+.contact-inbox-detail {
+  min-width: 0;
+  min-height: 22rem;
+}
+
+.contact-inbox-list .admin-panel-heading h2,
+.contact-inbox-detail .admin-panel-heading h2 {
+  margin: 0;
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.contact-inbox-items {
+  display: grid;
+}
+
+.contact-inbox-item {
+  display: grid;
+  width: 100%;
+  gap: 0.55rem;
+  padding: 0.9rem 0;
+  border: 0;
+  border-bottom: 1px solid rgba(245, 240, 233, 0.1);
+  color: var(--paper-dim);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.contact-inbox-item.is-selected {
+  padding-right: 0.65rem;
+  padding-left: 0.65rem;
+  background: rgba(221, 151, 107, 0.08);
+}
+
+.contact-inbox-item-top,
+.contact-inbox-item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.contact-inbox-item-top strong {
+  color: var(--paper);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.contact-inbox-item-top time,
+.contact-inbox-item-bottom > span:first-child,
+.contact-inbox-item-subject,
+.contact-inbox-attachment-label {
+  overflow: hidden;
+  color: var(--paper-dim);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+}
+
+.contact-inbox-item-top time,
+.contact-inbox-attachment-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+}
+
+.contact-inbox-item-subject {
+  color: var(--paper);
+}
+
+.contact-inbox-item-bottom > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.contact-inbox-state {
+  flex: 0 0 auto;
+  color: var(--admin-muted);
+  font: 0.56rem var(--font-mono);
+  letter-spacing: 0.06em;
+}
+
+.contact-inbox-state.state-new {
+  color: var(--accent);
+}
+
+.contact-inbox-state.state-archived {
+  color: #92938f;
+}
+
+.contact-inbox-attachment-label {
+  color: var(--accent);
+}
+
+.contact-inbox-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.9rem;
+  color: var(--paper-dim);
+  font: 0.62rem var(--font-mono);
+}
+
+.contact-inbox-pagination button {
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.contact-inbox-pagination button:disabled,
+.contact-inbox-actions button:disabled,
+.contact-inbox-file button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.contact-inbox-empty,
+.contact-inbox-empty-state {
+  color: var(--paper-dim);
+  font-size: 0.82rem;
+}
+
+.contact-inbox-empty-state {
+  display: grid;
+  min-height: 20rem;
+  align-content: center;
+  justify-items: start;
+  gap: 0.8rem;
+}
+
+.contact-inbox-empty-state h2,
+.contact-inbox-empty-state p {
+  margin: 0;
+}
+
+.contact-inbox-empty-state h2 {
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.contact-inbox-sender {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(245, 240, 233, 0.1);
+  color: var(--paper-dim);
+  font-size: 0.75rem;
+}
+
+.contact-inbox-sender strong {
+  color: var(--paper);
+  font-weight: 500;
+}
+
+.contact-inbox-sender a {
+  width: fit-content;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.contact-inbox-sender time {
+  color: var(--admin-muted);
+  font: 0.6rem var(--font-mono);
+}
+
+.contact-inbox-body {
+  min-height: 9rem;
+  padding: 1.15rem 0;
+  color: var(--paper-dim);
+  font-size: 0.86rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.contact-inbox-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(245, 240, 233, 0.1);
+  color: var(--paper-dim);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.contact-inbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(245, 240, 233, 0.1);
+}
+
+.contact-inbox-message {
+  margin: 0.8rem 0;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+
+.contact-inbox-message.is-error {
+  color: #f0a09c;
+}
+
+@media (max-width: 900px) {
+  .contact-inbox-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .contact-inbox-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .contact-inbox-item-top,
+  .contact-inbox-item-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

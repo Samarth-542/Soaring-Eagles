@@ -10,6 +10,7 @@ import java.util.UUID;
 import in.soaringeagles.api.events.Event;
 import in.soaringeagles.api.events.EventRepository;
 import in.soaringeagles.api.events.EventStatus;
+import in.soaringeagles.api.events.PaymentMethod;
 import in.soaringeagles.api.integrations.payment.PaymentGateway;
 import in.soaringeagles.api.integrations.email.RegistrationEmailQueueService;
 import org.springframework.http.HttpStatus;
@@ -65,7 +66,8 @@ public class RegistrationReservationService {
         requireOpenEvent(event, now);
         registrationFieldValidator.validate(event, request);
         BigDecimal fee = event.getFeeInr();
-        boolean paid = fee.signum() > 0;
+        boolean freeEvent = fee.signum() == 0;
+        boolean paid = fee.signum() > 0 && event.getPaymentMethod() == PaymentMethod.RAZORPAY;
         if (paid && !paymentGateway.isCheckoutConfigured()) {
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,
@@ -83,13 +85,13 @@ public class RegistrationReservationService {
                 request,
                 now,
                 holdExpiresAt);
-        if (!paid) registration.confirm(now);
+        if (freeEvent) registration.confirm(now);
         registrationRepository.saveAndFlush(registration);
 
-        if (!paid) {
+        if (freeEvent) {
             emailQueueService.queue(registration.getId());
             return new RegistrationReservation(
-                    registration.getId(), null, registration.getState(), null, fee, 0, null, false);
+                    registration.getId(), null, registration.getState(), null, fee, 0, null, false, event.getPaymentMethod());
         }
 
         long amountPaise = fee.movePointRight(2).longValueExact();
@@ -103,7 +105,8 @@ public class RegistrationReservationService {
                 fee,
                 amountPaise,
                 null,
-                true);
+                true,
+                event.getPaymentMethod());
     }
 
     @Transactional
@@ -171,7 +174,8 @@ public class RegistrationReservationService {
                 registration.getFeeInr(),
                 amountPaise,
                 null,
-                true);
+                true,
+                event.getPaymentMethod());
     }
 
     @Transactional(readOnly = true)
@@ -214,7 +218,8 @@ public class RegistrationReservationService {
                     registration.getFeeInr(),
                     0,
                     null,
-                    false);
+                    false,
+                    registration.getEvent().getPaymentMethod());
         }
         PaymentAttempt attempt = latest.get();
         return reservationFor(registration, attempt, false);
@@ -232,7 +237,8 @@ public class RegistrationReservationService {
                 registration.getFeeInr(),
                 attempt.getAmountPaise(),
                 attempt.getRazorpayOrderId(),
-                createOrder);
+                createOrder,
+                registration.getEvent().getPaymentMethod());
     }
 
     private void requireOpenEvent(Event event, Instant now) {

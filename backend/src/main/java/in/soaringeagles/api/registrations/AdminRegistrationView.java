@@ -25,6 +25,7 @@ public record AdminRegistrationView(
         String captainName,
         String captainPhone,
         String captainEmail,
+        String paymentProofUrl,
         List<AdminTeamMemberView> members,
         PaymentAttemptState paymentStatus,
         EmailDeliveryState emailDeliveryStatus,
