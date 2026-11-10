@@ -1,5 +1,6 @@
 package in.soaringeagles.api.events;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,14 +24,20 @@ public class PublicEventController {
     @GetMapping
     public ResponseEntity<List<PublicEventView>> list() {
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.noCache())
+                .cacheControl(publicEventCache())
                 .body(eventService.listPublic());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PublicEventView> get(@PathVariable UUID id) {
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.noCache())
+                .cacheControl(publicEventCache())
                 .body(eventService.getPublic(id));
+    }
+
+    private CacheControl publicEventCache() {
+        return CacheControl.maxAge(Duration.ofSeconds(20))
+                .cachePublic()
+                .staleWhileRevalidate(Duration.ofSeconds(60));
     }
 }

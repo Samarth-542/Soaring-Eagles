@@ -1,9 +1,11 @@
 package in.soaringeagles.api;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,6 +36,9 @@ class SiteDetailsIntegrationTest {
     void defaultsArePublicAndAdminCanUpdateDetailsShownOnTheWebsite() throws Exception {
         mockMvc.perform(get("/api/v1/content/site-details"))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", containsString("public")))
+                .andExpect(header().string("Cache-Control", containsString("max-age=300")))
+                .andExpect(header().string("Cache-Control", containsString("stale-while-revalidate=300")))
                 .andExpect(jsonPath("$.email").value("tseofficial2011@gmail.com"))
                 .andExpect(jsonPath("$.linkedinUrl").value("https://linkedin.com/in/soaring-eagles-a7a19831b"))
                 .andExpect(jsonPath("$.xUrl").value("https://x.com/TSE_015"))

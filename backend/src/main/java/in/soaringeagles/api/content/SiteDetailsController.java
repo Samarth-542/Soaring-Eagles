@@ -1,6 +1,10 @@
 package in.soaringeagles.api.content;
 
+import java.time.Duration;
+
 import jakarta.validation.Valid;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,8 +20,12 @@ public class SiteDetailsController {
     }
 
     @GetMapping("/api/v1/content/site-details")
-    public SiteDetailsService.SiteDetails publicSiteDetails() {
-        return siteDetailsService.get();
+    public ResponseEntity<SiteDetailsService.SiteDetails> publicSiteDetails() {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(5))
+                        .cachePublic()
+                        .staleWhileRevalidate(Duration.ofMinutes(5)))
+                .body(siteDetailsService.get());
     }
 
     @GetMapping("/api/v1/admin/site-details")

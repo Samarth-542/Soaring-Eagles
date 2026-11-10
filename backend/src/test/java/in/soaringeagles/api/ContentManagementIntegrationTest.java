@@ -1,8 +1,10 @@
 package in.soaringeagles.api;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,17 +41,24 @@ class ContentManagementIntegrationTest {
     void migratedWebsiteContentIsServedPublicly() throws Exception {
         mockMvc.perform(get("/api/v1/content/team"))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", containsString("public")))
+                .andExpect(header().string("Cache-Control", containsString("max-age=300")))
+                .andExpect(header().string("Cache-Control", containsString("stale-while-revalidate=300")))
                 .andExpect(jsonPath("$.groups").isArray())
                 .andExpect(jsonPath("$.groups.length()").value(6))
                 .andExpect(jsonPath("$.groups[0].members.length()").value(2));
 
         mockMvc.perform(get("/api/v1/content/projects"))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", containsString("max-age=300")))
+                .andExpect(header().string("Cache-Control", containsString("stale-while-revalidate=300")))
                 .andExpect(jsonPath("$.length()").value(9))
                 .andExpect(jsonPath("$[0].title").value("Netra 2025"));
 
         mockMvc.perform(get("/api/v1/content/journey"))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", containsString("max-age=300")))
+                .andExpect(header().string("Cache-Control", containsString("stale-while-revalidate=300")))
                 .andExpect(jsonPath("$.length()").value(11))
                 .andExpect(jsonPath("$[0].title").value("SAEINDIA ADDC Workshop Phase 1 — SRM Chennai"));
     }

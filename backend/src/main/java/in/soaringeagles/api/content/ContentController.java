@@ -1,5 +1,6 @@
 package in.soaringeagles.api.content;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,12 +12,11 @@ import in.soaringeagles.api.content.ContentRecords.TeamGroup;
 import in.soaringeagles.api.content.ContentRecords.TeamMember;
 import in.soaringeagles.api.content.ContentRecords.TeamMemberRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RestController;
 
 @Validated
@@ -46,24 +48,31 @@ public class ContentController {
     }
 
     @GetMapping("/api/v1/content/team")
-    public TeamDirectory publicTeam() {
+    public ResponseEntity<TeamDirectory> publicTeam() {
         List<TeamMember> members = contentService.listTeam(true);
         List<TeamGroup> groups = contentService.listGroups();
-        return new TeamDirectory(groups.stream()
+        TeamDirectory directory = new TeamDirectory(groups.stream()
                 .map(group -> new TeamGroupView(
                         group.id(), group.title(), group.label(),
                         members.stream().filter(member -> member.groupId().equals(group.id())).toList()))
                 .toList());
+        return ResponseEntity.ok()
+                .cacheControl(publicContentCache())
+                .body(directory);
     }
 
     @GetMapping("/api/v1/content/projects")
-    public List<Project> publicProjects() {
-        return contentService.listProjects(true);
+    public ResponseEntity<List<Project>> publicProjects() {
+        return ResponseEntity.ok()
+                .cacheControl(publicContentCache())
+                .body(contentService.listProjects(true));
     }
 
     @GetMapping("/api/v1/content/journey")
-    public List<JourneyMilestone> publicJourney() {
-        return contentService.listJourney(true);
+    public ResponseEntity<List<JourneyMilestone>> publicJourney() {
+        return ResponseEntity.ok()
+                .cacheControl(publicContentCache())
+                .body(contentService.listJourney(true));
     }
 
     @GetMapping("/api/v1/admin/content/team")
@@ -139,5 +148,11 @@ public class ContentController {
     }
 
     public record AdminTeamDirectory(List<TeamGroup> groups, List<TeamMember> members) {
+    }
+
+    private CacheControl publicContentCache() {
+        return CacheControl.maxAge(Duration.ofMinutes(5))
+                .cachePublic()
+                .staleWhileRevalidate(Duration.ofMinutes(5));
     }
 }

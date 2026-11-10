@@ -1,9 +1,11 @@
 package in.soaringeagles.api;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -98,6 +100,9 @@ class EventManagementIntegrationTest {
 
         mockMvc.perform(get("/api/v1/events"))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", containsString("public")))
+                .andExpect(header().string("Cache-Control", containsString("max-age=20")))
+                .andExpect(header().string("Cache-Control", containsString("stale-while-revalidate=60")))
                 .andExpect(jsonPath("$").isEmpty());
 
         mockMvc.perform(post("/api/v1/admin/events/{id}/publish", id)
@@ -108,6 +113,8 @@ class EventManagementIntegrationTest {
 
         mockMvc.perform(get("/api/v1/events/{id}", id))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", containsString("max-age=20")))
+                .andExpect(header().string("Cache-Control", containsString("stale-while-revalidate=60")))
                 .andExpect(jsonPath("$.title").value("Flight Systems Workshop"))
                 .andExpect(jsonPath("$.feeInr").value(250.0))
                 .andExpect(jsonPath("$.registrationType").value("TEAM"))
