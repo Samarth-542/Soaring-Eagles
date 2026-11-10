@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import ResponsiveImage from './ResponsiveImage'
 
 interface SiteHeaderProps {
   reveal?: boolean
@@ -30,7 +31,7 @@ const SiteHeader = forwardRef<HTMLElement, SiteHeaderProps>(({ reveal = false },
   return (
     <header className={`site-header${reveal ? '' : ' site-header--page'}`} ref={ref}>
       <Link className="brand" to="/" aria-label="Soaring Eagles home" {...revealProps}>
-        <img src="/images/brand/club-logo.png" alt="" />
+        <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
         <span>SOARING<br />EAGLES</span>
       </Link>
       <button

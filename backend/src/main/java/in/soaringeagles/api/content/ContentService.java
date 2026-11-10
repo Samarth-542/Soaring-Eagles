@@ -1,6 +1,8 @@
 package in.soaringeagles.api.content;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 import in.soaringeagles.api.content.ContentRecords.JourneyMilestone;
@@ -103,7 +105,22 @@ public class ContentService {
                 rs.getObject("id", UUID.class), rs.getString("title"), rs.getInt("project_year"),
                 rs.getString("description"), rs.getString("image_url"), rs.getInt("position"),
                 rs.getBoolean("published")), !publishedOnly);
-        return rows.stream().map(this::toProject).toList();
+        if (rows.isEmpty()) return List.of();
+
+        String placeholders = String.join(",", java.util.Collections.nCopies(rows.size(), "?"));
+        Object[] projectIds = rows.stream().map(ProjectRow::id).toArray();
+        Map<UUID, List<String>> tagsByProject = new HashMap<>();
+        rows.forEach(row -> tagsByProject.put(row.id(), new java.util.ArrayList<>()));
+        jdbc.query("""
+                SELECT project_id, tag
+                FROM project_tags
+                WHERE project_id IN (%s)
+                ORDER BY project_id, position
+                """.formatted(placeholders), rs -> {
+            UUID projectId = rs.getObject("project_id", UUID.class);
+            tagsByProject.get(projectId).add(rs.getString("tag"));
+        }, projectIds);
+        return rows.stream().map(row -> toProject(row, tagsByProject.get(row.id()))).toList();
     }
 
     public Project createProject(ProjectRequest request) {
@@ -216,6 +233,10 @@ public class ContentService {
         List<String> tags = jdbc.query("""
                 SELECT tag FROM project_tags WHERE project_id = ? ORDER BY position
                 """, (rs, index) -> rs.getString("tag"), row.id());
+        return toProject(row, tags);
+    }
+
+    private Project toProject(ProjectRow row, List<String> tags) {
         return new Project(row.id(), row.title(), row.year(), row.description(), row.imageUrl(),
                 tags, row.position(), row.published());
     }

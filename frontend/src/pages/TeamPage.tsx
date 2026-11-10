@@ -1,26 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import PublicDataStatus from '../components/PublicDataStatus'
+import ResponsiveImage from '../components/ResponsiveImage'
 import SiteHeader from '../components/SiteHeader'
 import { fetchPublicTeam } from '../lib/contentApi'
 import type { TeamDirectory as TeamDirectoryData } from '../lib/contentApi'
+import { usePublicData } from '../lib/usePublicData'
 import './TeamPage.css'
 
 function TeamPage() {
-  const [directory, setDirectory] = useState<TeamDirectoryData | null>(null)
-  const [loadError, setLoadError] = useState('')
+  const teamData = usePublicData<TeamDirectoryData>('team', 300_000, fetchPublicTeam)
+  const directory = teamData.data
 
   useEffect(() => {
     document.title = 'Our Team | Soaring Eagles'
-    let active = true
-    fetchPublicTeam()
-      .then((result) => {
-        if (active) setDirectory(result)
-      })
-      .catch(() => {
-        if (active) setLoadError('Team profiles could not be loaded. Please try again later.')
-      })
     return () => {
-      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
   }, [])
@@ -44,11 +38,25 @@ function TeamPage() {
             </div>
           </div>
 
-          {loadError ? (
-            <p className="team-empty-state" role="alert">{loadError}</p>
-          ) : !directory ? (
-            <p className="team-empty-state" role="status">Loading team profiles…</p>
-          ) : <div className="team-groups">
+          {!directory ? (
+            <PublicDataStatus
+              isLoading={teamData.isLoading}
+              isRefreshing={teamData.isRefreshing}
+              error={teamData.error}
+              hasData={false}
+              errorMessage="Team profiles could not be loaded. Please try again."
+              onRetry={teamData.retry}
+            />
+          ) : <>
+            <PublicDataStatus
+              isLoading={false}
+              isRefreshing={teamData.isRefreshing}
+              error={teamData.error}
+              hasData
+              errorMessage=""
+              onRetry={teamData.retry}
+            />
+            <div className="team-groups">
             {directory.groups.map((section) => (
               <section className="team-group" id={section.id} key={section.id} aria-labelledby={`${section.id}-title`}>
                 <div className="team-group-heading">
@@ -59,7 +67,7 @@ function TeamPage() {
                     {section.members.map((member) => (
                       <article className="team-member-card" key={member.id}>
                         <div className="team-member-photo">
-                          <img src={member.imageUrl} alt={member.name} loading="lazy" decoding="async" />
+                          <ResponsiveImage src={member.imageUrl} alt={member.name} />
                         </div>
                         <div className="team-member-info">
                           <div>
@@ -103,13 +111,14 @@ function TeamPage() {
                 )}
               </section>
             ))}
-          </div>}
+            </div>
+          </>}
         </section>
       </main>
 
       <footer className="site-footer team-footer">
         <Link className="brand" to="/" aria-label="Back to Soaring Eagles home">
-          <img src="/images/brand/club-logo.png" alt="" />
+          <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
           <span>SOARING<br />EAGLES</span>
         </Link>
         <span>STUDENT AERODESIGN · TUMAKURU, INDIA</span>

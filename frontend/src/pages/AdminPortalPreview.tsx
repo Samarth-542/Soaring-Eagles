@@ -6,6 +6,7 @@ import ContentManagement from './admin/ContentManagement'
 import AdminAccountManagement from './admin/AdminAccountManagement'
 import ContactInbox from './admin/ContactInbox'
 import SiteDetailsManagement from './admin/SiteDetailsManagement'
+import ResponsiveImage from '../components/ResponsiveImage'
 import './AdminPortalPreview.css'
 
 const adminSections = [
@@ -106,7 +107,7 @@ function AdminPortalPreview({
     <div className="admin-preview">
       <aside className={`admin-sidebar${preview ? '' : ' admin-sidebar-authenticated'}`}>
         <Link className="admin-brand" to="/" aria-label="Return to Soaring Eagles website">
-          <img src="/images/brand/club-logo.png" alt="" />
+          <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
           <span>
             <strong>SOARING EAGLES</strong>
             <small>CLUB CONTROL</small>

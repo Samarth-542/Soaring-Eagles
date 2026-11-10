@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AdminApiError, fetchCsrfToken, loginAdmin } from '../lib/adminAuth'
+import ResponsiveImage from '../components/ResponsiveImage'
 import './AdminLoginPreview.css'
 
 function AdminLoginPreview() {
@@ -64,7 +65,7 @@ function AdminLoginPreview() {
     <main className="admin-login-preview">
       <div className="admin-login-topbar">
         <Link className="admin-login-brand" to="/" aria-label="Return to Soaring Eagles website">
-          <img src="/images/brand/club-logo.png" alt="" />
+          <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
           <span>
             <strong>SOARING EAGLES</strong>
             <small>CLUB CONTROL</small>

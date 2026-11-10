@@ -4,7 +4,9 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import in.soaringeagles.api.registrations.RegistrationCapacityService;
@@ -113,17 +115,21 @@ public class EventService {
     @Transactional(readOnly = true)
     public List<EventView> listAdmin() {
         OffsetDateTime now = nowUtc();
-        return eventRepository.findAllByOrderByStartsAtDesc().stream()
-                .map(event -> toView(event, now))
+        List<Event> events = eventRepository.findAllWithArchivePhotosByOrderByStartsAtDesc();
+        Map<UUID, Integer> remainingCapacities = remainingCapacities(events, now);
+        return events.stream()
+                .map(event -> toView(event, now, remainingCapacities.get(event.getId())))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<PublicEventView> listPublic() {
         OffsetDateTime now = nowUtc();
-        return eventRepository.findAllByOrderByStartsAtDesc().stream()
+        List<Event> events = eventRepository.findPublicEvents(now);
+        Map<UUID, Integer> remainingCapacities = remainingCapacities(events, now);
+        return events.stream()
                 .filter(event -> isPublic(event, now))
-                .map(event -> toPublicView(event, now))
+                .map(event -> toPublicView(event, now, remainingCapacities.get(event.getId())))
                 .toList();
     }
 
@@ -144,6 +150,12 @@ public class EventService {
 
     private OffsetDateTime nowUtc() {
         return OffsetDateTime.now(clock).withOffsetSameInstant(ZoneOffset.UTC);
+    }
+
+    private Map<UUID, Integer> remainingCapacities(List<Event> events, OffsetDateTime now) {
+        Map<UUID, Integer> capacities = new HashMap<>();
+        events.forEach(event -> capacities.put(event.getId(), event.getCapacity()));
+        return registrationCapacityService.remainingCapacities(capacities, now);
     }
 
     private void validateRequest(EventRequest request) {
@@ -226,10 +238,14 @@ public class EventService {
     }
 
     private EventView toView(Event event, OffsetDateTime now) {
-        EventStatus status = effectiveStatus(event, now);
-        boolean ended = !event.getEndsAt().isAfter(now);
         int remainingCapacity = registrationCapacityService.remainingCapacity(
                 event.getId(), event.getCapacity(), now);
+        return toView(event, now, remainingCapacity);
+    }
+
+    private EventView toView(Event event, OffsetDateTime now, int remainingCapacity) {
+        EventStatus status = effectiveStatus(event, now);
+        boolean ended = !event.getEndsAt().isAfter(now);
         boolean registrationWindowOpen = status == EventStatus.PUBLISHED
                 && !ended
                 && event.getRegistrationDeadline().isAfter(now)
@@ -265,7 +281,13 @@ public class EventService {
     }
 
     private PublicEventView toPublicView(Event event, OffsetDateTime now) {
-        EventView view = toView(event, now);
+        int remainingCapacity = registrationCapacityService.remainingCapacity(
+                event.getId(), event.getCapacity(), now);
+        return toPublicView(event, now, remainingCapacity);
+    }
+
+    private PublicEventView toPublicView(Event event, OffsetDateTime now, int remainingCapacity) {
+        EventView view = toView(event, now, remainingCapacity);
         return new PublicEventView(
                 view.id(),
                 view.title(),

@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { pastEvents, type ClubEvent } from '../../data/events'
 import useReducedMotion from '../../hooks/useReducedMotion'
 import type { PublicEventRecord } from '../../lib/eventsApi'
+import ResponsiveImage from '../ResponsiveImage'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -120,11 +121,10 @@ export default function EventTimeline({ events }: EventTimelineProps) {
             </div>
             <article className="event-timeline-card">
               <div className="event-timeline-image">
-                <img
+                <ResponsiveImage
                   src={event.image}
                   alt={`${event.title} event`}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  decoding="async"
                 />
                 <span className="event-timeline-index" aria-hidden="true">
                   {String(index + 1).padStart(2, '0')}

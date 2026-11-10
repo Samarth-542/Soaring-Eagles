@@ -1,27 +1,28 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import type { Group } from 'three'
 import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
-import AdminLoginPreview from './pages/AdminLoginPreview'
-import AdminPortalPreview from './pages/AdminPortalPreview'
-import AdminSessionPage from './pages/AdminSessionPage'
 import GridVignetteBackground from './components/GridVignetteBackground'
 import HeroIntroOverlay from './components/HeroIntroOverlay'
 import HomeContactForm from './components/HomeContactForm'
+import PublicDataStatus from './components/PublicDataStatus'
+import ResponsiveImage from './components/ResponsiveImage'
 import SiteHeader from './components/SiteHeader'
-import EventsPage from './pages/EventsPage'
-import EventDetailsPage from './pages/EventDetailsPage'
-import OurJourneyPage from './pages/OurJourneyPage'
-import ProjectsPage from './pages/ProjectsPage'
-import TeamPage from './pages/TeamPage'
 import { useHeroReveal } from './components/HeroReveal'
 import { fetchPublicSiteDetails } from './lib/contentApi'
-import type { SiteDetails } from './lib/contentApi'
+import { usePublicData } from './lib/usePublicData'
 import { fetchPublicEvents } from './lib/eventsApi'
-import type { PublicEventRecord } from './lib/eventsApi'
 
 const DroneExperience = lazy(() => import('./DroneExperience'))
+const AdminLoginPreview = lazy(() => import('./pages/AdminLoginPreview'))
+const AdminPortalPreview = lazy(() => import('./pages/AdminPortalPreview'))
+const AdminSessionPage = lazy(() => import('./pages/AdminSessionPage'))
+const EventsPage = lazy(() => import('./pages/EventsPage'))
+const EventDetailsPage = lazy(() => import('./pages/EventDetailsPage'))
+const OurJourneyPage = lazy(() => import('./pages/OurJourneyPage'))
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
+const TeamPage = lazy(() => import('./pages/TeamPage'))
 
 function DroneExperienceLoader({
   onModelReady,
@@ -30,6 +31,14 @@ function DroneExperienceLoader({
   onModelReady: (model?: Group, riseDistance?: number) => void
   pointerTarget: RefObject<HTMLElement | null>
 }) {
+  const [shouldLoad, setShouldLoad] = useState(false)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShouldLoad(true), 1200)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  if (!shouldLoad) return <div className="scene-loading hero-scene-placeholder" role="status">PREPARING AIRCRAFT</div>
   return (
     <Suspense fallback={<div className="scene-loading hero-scene-placeholder" role="status">PREPARING AIRCRAFT</div>}>
       <DroneExperience onModelReady={onModelReady} pointerTarget={pointerTarget} />
@@ -40,50 +49,16 @@ function DroneExperienceLoader({
 function HomePage() {
   const headerRef = useRef<HTMLElement>(null)
   const heroRef = useRef<HTMLElement>(null)
-  const [nextEvent, setNextEvent] = useState<PublicEventRecord | null>(null)
-  const [isLoadingEvents, setIsLoadingEvents] = useState(true)
-  const [eventLoadError, setEventLoadError] = useState('')
-  const [siteDetails, setSiteDetails] = useState<SiteDetails | null>(null)
-  const [siteDetailsLoadError, setSiteDetailsLoadError] = useState('')
+  const eventData = usePublicData('events', 25_000, fetchPublicEvents)
+  const siteDetailsData = usePublicData('site-details', 300_000, fetchPublicSiteDetails)
+  const nextEvent = useMemo(() => eventData.data
+    ?.filter((event) => !event.ended)
+    .sort((left, right) => left.startsAt.localeCompare(right.startsAt))[0] ?? null, [eventData.data])
+  const siteDetails = siteDetailsData.data
   const { overlayRef, introDismissed, startReveal } = useHeroReveal(heroRef, headerRef)
   const handleModelReady = useCallback((model?: Group, riseDistance?: number) => {
     startReveal(model, riseDistance)
   }, [startReveal])
-
-  useEffect(() => {
-    let active = true
-    fetchPublicEvents()
-      .then((events) => {
-        if (!active) return
-        const upcoming = events
-          .filter((event) => !event.ended)
-          .sort((left, right) => left.startsAt.localeCompare(right.startsAt))
-        setNextEvent(upcoming[0] ?? null)
-      })
-      .catch(() => {
-        if (active) setEventLoadError('Event updates could not be loaded. Please visit the Events page or contact the club.')
-      })
-      .finally(() => {
-        if (active) setIsLoadingEvents(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  useEffect(() => {
-    let active = true
-    fetchPublicSiteDetails()
-      .then((details) => {
-        if (active) setSiteDetails(details)
-      })
-      .catch(() => {
-        if (active) setSiteDetailsLoadError('Public contact information could not be loaded.')
-      })
-    return () => {
-      active = false
-    }
-  }, [])
 
   return (
     <>
@@ -136,14 +111,7 @@ function HomePage() {
             </div>
             <div className="upcoming-card-copy">
               <span className="event-status"><i /> {nextEvent?.status === 'CLOSED' ? 'EVENT CLOSED' : nextEvent ? 'UPCOMING EVENT' : 'EVENT UPDATES'}</span>
-              {isLoadingEvents ? (
-                <h3 role="status">Loading upcoming events…</h3>
-              ) : eventLoadError ? (
-                <>
-                  <h3>Event updates unavailable</h3>
-                  <p>{eventLoadError}</p>
-                </>
-              ) : nextEvent ? (
+              {nextEvent ? (
                 <>
                   <h3>{nextEvent.title}</h3>
                   <p>
@@ -151,12 +119,20 @@ function HomePage() {
                     {' · '}{nextEvent.venue}{' · '}₹{Number(nextEvent.feeInr).toLocaleString('en-IN')}
                   </p>
                 </>
-              ) : (
+              ) : eventData.data ? (
                 <>
                   <h3>No upcoming events announced</h3>
                   <p>There are no upcoming events to share right now. Check back for the next Soaring Eagles announcement.</p>
                 </>
-              )}
+              ) : null}
+              <PublicDataStatus
+                isLoading={eventData.isLoading}
+                isRefreshing={eventData.isRefreshing}
+                error={eventData.error}
+                hasData={eventData.data !== null}
+                errorMessage="Event updates could not be loaded. Please visit the Events page or contact the club."
+                onRetry={eventData.retry}
+              />
             </div>
             <Link className="upcoming-card-link" to={nextEvent ? `/events/${nextEvent.id}` : '/events'}>
               {nextEvent ? 'VIEW EVENT DETAILS' : 'EXPLORE EVENT ARCHIVE'} <span aria-hidden="true">↗</span>
@@ -202,9 +178,24 @@ function HomePage() {
                     </div>
                   </>
                 ) : (
-                  <p className="contact-information-status" role={siteDetailsLoadError ? 'alert' : 'status'}>
-                    {siteDetailsLoadError || 'Loading public contact information…'}
-                  </p>
+                  <PublicDataStatus
+                    isLoading={siteDetailsData.isLoading}
+                    isRefreshing={siteDetailsData.isRefreshing}
+                    error={siteDetailsData.error}
+                    hasData={siteDetails !== null}
+                    errorMessage="Public contact information could not be loaded."
+                    onRetry={siteDetailsData.retry}
+                  />
+                )}
+                {siteDetails && siteDetailsData.error && (
+                  <PublicDataStatus
+                    isLoading={false}
+                    isRefreshing={false}
+                    error
+                    hasData
+                    errorMessage=""
+                    onRetry={siteDetailsData.retry}
+                  />
                 )}
               </div>
             </div>
@@ -215,7 +206,7 @@ function HomePage() {
 
       <footer className="site-footer">
         <Link className="brand" to="/" aria-label="Back to Soaring Eagles home">
-          <img src="/images/brand/club-logo.png" alt="" />
+          <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
           <span>SOARING<br />EAGLES</span>
         </Link>
         <span>STUDENT AERODESIGN & AERIAL ROBOTICS · TUMAKURU, INDIA</span>
@@ -252,18 +243,20 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/events/:eventId" element={<EventDetailsPage />} />
-        <Route path="/our-journey" element={<OurJourneyPage />} />
-        <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/team" element={<TeamPage />} />
-        <Route path="/admin-preview/login" element={<AdminLoginPreview />} />
-        <Route path="/admin-preview" element={<AdminPortalPreview />} />
-        <Route path="/admin" element={<AdminSessionPage />} />
-        <Route path="*" element={<main className="team-main"><h1>Page not found</h1><Link to="/">Back home</Link></main>} />
-      </Routes>
+      <Suspense fallback={<main className="route-loading" role="status">Loading page…</main>}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/:eventId" element={<EventDetailsPage />} />
+          <Route path="/our-journey" element={<OurJourneyPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/team" element={<TeamPage />} />
+          <Route path="/admin-preview/login" element={<AdminLoginPreview />} />
+          <Route path="/admin-preview" element={<AdminPortalPreview />} />
+          <Route path="/admin" element={<AdminSessionPage />} />
+          <Route path="*" element={<main className="team-main"><h1>Page not found</h1><Link to="/">Back home</Link></main>} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

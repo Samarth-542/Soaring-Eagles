@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Project } from '../../lib/contentApi'
 import useReducedMotion from '../../hooks/useReducedMotion'
+import ResponsiveImage from '../ResponsiveImage'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -79,11 +80,10 @@ export default function ProjectTimeline({ projects }: { projects: Project[] }) {
               <span className="project-timeline-marker" aria-hidden="true" />
               <article className="project-timeline-card">
                 <div className="project-timeline-image">
-                  <img
+                  <ResponsiveImage
                     src={project.imageUrl}
                     alt={`${project.title} aircraft`}
                     loading="lazy"
-                    decoding="async"
                   />
                   <span className="project-timeline-index" aria-hidden="true">
                     {String(index + 1).padStart(2, '0')}

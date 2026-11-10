@@ -1,27 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import PublicDataStatus from '../components/PublicDataStatus'
+import ResponsiveImage from '../components/ResponsiveImage'
 import SiteHeader from '../components/SiteHeader'
 import JourneyTimeline from '../components/ui/journey-timeline'
 import { fetchPublicJourney } from '../lib/contentApi'
 import type { JourneyMilestone } from '../lib/contentApi'
+import { usePublicData } from '../lib/usePublicData'
 import './OurJourneyPage.css'
 
 function OurJourneyPage() {
-  const [milestones, setMilestones] = useState<JourneyMilestone[] | null>(null)
-  const [loadError, setLoadError] = useState('')
+  const journeyData = usePublicData<JourneyMilestone[]>('journey', 300_000, fetchPublicJourney)
+  const milestones = journeyData.data
 
   useEffect(() => {
     document.title = 'Our Journey | Soaring Eagles'
-    let active = true
-    fetchPublicJourney()
-      .then((result) => {
-        if (active) setMilestones(result)
-      })
-      .catch(() => {
-        if (active) setLoadError('Journey milestones could not be loaded. Please try again later.')
-      })
     return () => {
-      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
   }, [])
@@ -46,17 +40,34 @@ function OurJourneyPage() {
             </div>
             <p>{milestones ? `${milestones.length} milestones · newest first` : 'Newest first'}</p>
           </div>
-          {loadError ? (
-            <p className="journey-content-note" role="alert">{loadError}</p>
-          ) : !milestones ? (
-            <p className="journey-content-note" role="status">Loading milestones…</p>
-          ) : <JourneyTimeline milestones={milestones} />}
+          {!milestones ? (
+            <PublicDataStatus
+              isLoading={journeyData.isLoading}
+              isRefreshing={journeyData.isRefreshing}
+              error={journeyData.error}
+              hasData={false}
+              errorMessage="Journey milestones could not be loaded. Please try again."
+              onRetry={journeyData.retry}
+            />
+          ) : (
+            <>
+              <PublicDataStatus
+                isLoading={false}
+                isRefreshing={journeyData.isRefreshing}
+                error={journeyData.error}
+                hasData
+                errorMessage=""
+                onRetry={journeyData.retry}
+              />
+              <JourneyTimeline milestones={milestones} />
+            </>
+          )}
         </section>
       </main>
 
       <footer className="site-footer journey-footer">
         <Link className="brand" to="/" aria-label="Back to Soaring Eagles home">
-          <img src="/images/brand/club-logo.png" alt="" />
+          <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
           <span>SOARING<br />EAGLES</span>
         </Link>
         <span>STUDENT AERODESIGN · TUMAKURU, INDIA</span>

@@ -5,6 +5,7 @@ import { Html, OrbitControls, useGLTF } from '@react-three/drei'
 import { Box3, MathUtils, Mesh, PerspectiveCamera, Vector2, Vector3 } from 'three'
 import type { Group } from 'three'
 import useReducedMotion from './hooks/useReducedMotion'
+import ResponsiveImage from './components/ResponsiveImage'
 
 const modelPath = '/models/assault_drone_concept.glb'
 const modelScale = 1.95
@@ -253,7 +254,7 @@ export default function DroneExperience({
       <div className="model-stage" role="group" aria-label="Interactive drone display">
         {webglAvailable === false ? (
           <div className="model-fallback" role="status">
-            <img src="/images/brand/hero-drones.jpg" alt="" />
+            <ResponsiveImage src="/images/brand/hero-drones.jpg" alt="" loading="eager" />
             <p>Interactive 3D is unavailable in this browser.</p>
           </div>
         ) : (
@@ -261,7 +262,7 @@ export default function DroneExperience({
             onModelReady={onModelReady}
             fallback={
               <div className="model-fallback" role="status">
-                <img src="/images/brand/hero-drones.jpg" alt="" />
+                <ResponsiveImage src="/images/brand/hero-drones.jpg" alt="" loading="eager" />
                 <p>Interactive 3D is unavailable right now.</p>
               </div>
             }

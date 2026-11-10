@@ -1,6 +1,7 @@
 package in.soaringeagles.api.registrations;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +36,23 @@ public interface RegistrationRepository extends JpaRepository<Registration, UUID
             """)
     long countCapacitySlotsInUse(@Param("eventId") UUID eventId, @Param("now") Instant now);
 
+    @Query("""
+            select registration.event.id as eventId, count(registration) as usedSlots
+            from Registration registration
+            where registration.event.id in :eventIds
+              and (
+                  registration.state = in.soaringeagles.api.registrations.RegistrationState.CONFIRMED
+                  or (
+                      registration.state = in.soaringeagles.api.registrations.RegistrationState.PENDING_PAYMENT
+                      and registration.holdExpiresAt > :now
+                  )
+              )
+            group by registration.event.id
+            """)
+    List<CapacityUsage> countCapacitySlotsInUseByEventIds(
+            @Param("eventIds") Collection<UUID> eventIds,
+            @Param("now") Instant now);
+
     @Modifying
     @Query("""
             update Registration registration
@@ -49,4 +67,10 @@ public interface RegistrationRepository extends JpaRepository<Registration, UUID
     Page<Registration> findAllByEventIdOrderByCreatedAtDesc(UUID eventId, Pageable pageable);
 
     List<Registration> findAllByEventIdOrderByCreatedAtDesc(UUID eventId);
+
+    interface CapacityUsage {
+        UUID getEventId();
+
+        long getUsedSlots();
+    }
 }

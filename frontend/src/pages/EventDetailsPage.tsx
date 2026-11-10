@@ -1,38 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import PublicDataStatus from '../components/PublicDataStatus'
+import ResponsiveImage from '../components/ResponsiveImage'
 import RegistrationForm from '../components/RegistrationForm'
 import SiteHeader from '../components/SiteHeader'
 import { fetchPublicEvent } from '../lib/eventsApi'
 import type { PublicEventRecord } from '../lib/eventsApi'
+import { usePublicData } from '../lib/usePublicData'
 import './EventsPage.css'
 
 function EventDetailsPage() {
   const { eventId = '' } = useParams()
-  const [event, setEvent] = useState<PublicEventRecord | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState('')
+  const loadEvent = useCallback(() => fetchPublicEvent(eventId), [eventId])
+  const eventData = usePublicData<PublicEventRecord>(`event:${eventId}`, 25_000, loadEvent)
+  const event = eventData.data
 
   useEffect(() => {
-    let active = true
-    document.title = 'Event Details | Soaring Eagles'
-    fetchPublicEvent(eventId)
-      .then((record) => {
-        if (active) {
-          setEvent(record)
-          document.title = `${record.title} | Soaring Eagles`
-        }
-      })
-      .catch(() => {
-        if (active) setLoadError('This event could not be found or is not public.')
-      })
-      .finally(() => {
-        if (active) setIsLoading(false)
-      })
+    document.title = event ? `${event.title} | Soaring Eagles` : 'Event Details | Soaring Eagles'
     return () => {
-      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
-  }, [eventId])
+  }, [event])
 
   const date = (value: string) => new Intl.DateTimeFormat('en-IN', {
     dateStyle: 'full',
@@ -45,17 +33,30 @@ function EventDetailsPage() {
       <SiteHeader />
       <main className="events-main">
         <p className="events-kicker"><span aria-hidden="true" /> FLIGHT LOG / EVENT DETAILS</p>
-        {isLoading ? (
-          <p className="events-detail-state" role="status">Loading event…</p>
-        ) : loadError || !event ? (
+        {!event ? (
           <section className="events-detail-state" role="alert">
-            <h1>Event unavailable.</h1>
-            <p>{loadError || 'This event could not be found or is not public.'}</p>
+            <PublicDataStatus
+              isLoading={eventData.isLoading}
+              isRefreshing={eventData.isRefreshing}
+              error={eventData.error}
+              hasData={false}
+              errorMessage="This event could not be found or is not public."
+              onRetry={eventData.retry}
+            />
             <Link to="/events">BACK TO EVENTS →</Link>
           </section>
         ) : (
-          <article className="events-detail">
-            {event.posterUrl && <img className="events-detail-poster" src={event.posterUrl} alt={`${event.title} poster`} />}
+          <>
+            <PublicDataStatus
+              isLoading={false}
+              isRefreshing={eventData.isRefreshing}
+              error={eventData.error}
+              hasData
+              errorMessage=""
+              onRetry={eventData.retry}
+            />
+            <article className="events-detail">
+            {event.posterUrl && <ResponsiveImage className="events-detail-poster" src={event.posterUrl} alt={`${event.title} poster`} loading="eager" />}
             <p className="events-section-label">{event.ended ? 'PAST EVENT' : event.status === 'CLOSED' ? 'EVENT CLOSED' : 'UPCOMING EVENT'}</p>
             <h1>{event.title}</h1>
             <p className="events-detail-description">{event.description}</p>
@@ -90,11 +91,12 @@ function EventDetailsPage() {
             )}
             {event.archivePhotos.length > 0 && (
               <div className="events-detail-gallery" aria-label="Event archive photos">
-                {event.archivePhotos.map((photo) => <img src={photo} alt={`${event.title} archive photo`} key={photo} />)}
+                {event.archivePhotos.map((photo) => <ResponsiveImage src={photo} alt={`${event.title} archive photo`} key={photo} />)}
               </div>
             )}
             <Link to="/events">← ALL EVENTS</Link>
-          </article>
+            </article>
+          </>
         )}
       </main>
     </div>

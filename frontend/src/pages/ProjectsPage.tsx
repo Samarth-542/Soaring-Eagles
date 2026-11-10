@@ -1,27 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import PublicDataStatus from '../components/PublicDataStatus'
+import ResponsiveImage from '../components/ResponsiveImage'
 import SiteHeader from '../components/SiteHeader'
 import ProjectTimeline from '../components/ui/timeline-01'
 import { fetchPublicProjects } from '../lib/contentApi'
 import type { Project } from '../lib/contentApi'
+import { usePublicData } from '../lib/usePublicData'
 import './ProjectsPage.css'
 
 function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[] | null>(null)
-  const [loadError, setLoadError] = useState('')
+  const projectData = usePublicData<Project[]>('projects', 300_000, fetchPublicProjects)
+  const projects = projectData.data
 
   useEffect(() => {
     document.title = 'Our Projects | Soaring Eagles'
-    let active = true
-    fetchPublicProjects()
-      .then((result) => {
-        if (active) setProjects(result)
-      })
-      .catch(() => {
-        if (active) setLoadError('Projects could not be loaded. Please try again later.')
-      })
     return () => {
-      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
   }, [])
@@ -46,19 +40,34 @@ function ProjectsPage() {
             </div>
             <p>{projects ? `${projects.length} builds · newest first` : 'Newest first'}</p>
           </div>
-          {loadError ? (
-            <p className="projects-intro-copy" role="alert">{loadError}</p>
-          ) : !projects ? (
-            <p className="projects-intro-copy" role="status">Loading projects…</p>
+          {!projects ? (
+            <PublicDataStatus
+              isLoading={projectData.isLoading}
+              isRefreshing={projectData.isRefreshing}
+              error={projectData.error}
+              hasData={false}
+              errorMessage="Projects could not be loaded. Please try again."
+              onRetry={projectData.retry}
+            />
           ) : (
-            <ProjectTimeline projects={projects} />
+            <>
+              <PublicDataStatus
+                isLoading={false}
+                isRefreshing={projectData.isRefreshing}
+                error={projectData.error}
+                hasData
+                errorMessage=""
+                onRetry={projectData.retry}
+              />
+              <ProjectTimeline projects={projects} />
+            </>
           )}
         </section>
       </main>
 
       <footer className="site-footer projects-footer">
         <Link className="brand" to="/" aria-label="Back to Soaring Eagles home">
-          <img src="/images/brand/club-logo.png" alt="" />
+          <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
           <span>SOARING<br />EAGLES</span>
         </Link>
         <span>STUDENT AERODESIGN · TUMAKURU, INDIA</span>

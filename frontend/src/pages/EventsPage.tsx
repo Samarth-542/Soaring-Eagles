@@ -1,31 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import PublicDataStatus from '../components/PublicDataStatus'
+import ResponsiveImage from '../components/ResponsiveImage'
 import SiteHeader from '../components/SiteHeader'
 import EventTimeline from '../components/ui/event-timeline'
 import { fetchPublicEvents } from '../lib/eventsApi'
-import type { PublicEventRecord } from '../lib/eventsApi'
+import { usePublicData } from '../lib/usePublicData'
 import './EventsPage.css'
 
 function EventsPage() {
-  const [events, setEvents] = useState<PublicEventRecord[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState('')
+  const eventData = usePublicData('events', 25_000, fetchPublicEvents)
+  const events = eventData.data ?? []
 
   useEffect(() => {
     document.title = 'Events | Soaring Eagles'
-    let active = true
-    fetchPublicEvents()
-      .then((records) => {
-        if (active) setEvents(records)
-      })
-      .catch(() => {
-        if (active) setLoadError('Event updates could not be loaded. Please try again later.')
-      })
-      .finally(() => {
-        if (active) setIsLoading(false)
-      })
     return () => {
-      active = false
       document.title = 'Soaring Eagles | Aerial Robotics Club'
     }
   }, [])
@@ -52,11 +41,15 @@ function EventsPage() {
             <p className="events-section-label">01 / WHAT'S NEXT</p>
             <h2 id="events-upcoming-title">On the <em>horizon.</em></h2>
           </div>
-          {isLoading ? (
-            <div className="events-upcoming-state" role="status">Loading published events…</div>
-          ) : loadError ? (
-            <div className="events-upcoming-state events-load-error" role="alert">{loadError}</div>
-          ) : upcomingEvents.length > 0 ? (
+          <PublicDataStatus
+            isLoading={eventData.isLoading}
+            isRefreshing={eventData.isRefreshing}
+            error={eventData.error}
+            hasData={eventData.data !== null}
+            errorMessage="Event updates could not be loaded. Please try again."
+            onRetry={eventData.retry}
+          />
+          {!eventData.isLoading && upcomingEvents.length > 0 ? (
             <div className="events-upcoming-list">
               {upcomingEvents.map((event) => (
                 <article className="events-upcoming-state" key={event.id}>
@@ -71,14 +64,14 @@ function EventsPage() {
                 </article>
               ))}
             </div>
-          ) : (
+          ) : !eventData.isLoading && !eventData.error ? (
             <div className="events-upcoming-state">
               <span className="events-status"><i aria-hidden="true" /> EVENT UPDATES</span>
               <h3>No upcoming events announced</h3>
               <p>There are no upcoming events to share right now. Check back for the next Soaring Eagles announcement.</p>
               <Link to="/#contact">ASK US ABOUT EVENTS <span aria-hidden="true">↗</span></Link>
             </div>
-          )}
+          ) : null}
         </section>
 
         <section className="events-archive" aria-labelledby="events-archive-title">
@@ -100,7 +93,7 @@ function EventsPage() {
                     {event.archiveResults && <p><strong>Results</strong>{event.archiveResults}</p>}
                     {event.archivePhotos.length > 0 && (
                       <div className="events-detail-gallery" aria-label={`${event.title} archive photos`}>
-                        {event.archivePhotos.map((photo) => <img src={photo} alt={`${event.title} archive photo`} key={photo} />)}
+                        {event.archivePhotos.map((photo) => <ResponsiveImage src={photo} alt={`${event.title} archive photo`} key={photo} />)}
                       </div>
                     )}
                   </div>
@@ -115,7 +108,7 @@ function EventsPage() {
 
       <footer className="site-footer events-footer">
         <Link className="brand" to="/" aria-label="Back to Soaring Eagles home">
-          <img src="/images/brand/club-logo.png" alt="" />
+          <ResponsiveImage src="/images/brand/club-logo.png" alt="" width={40} height={40} loading="eager" />
           <span>SOARING<br />EAGLES</span>
         </Link>
         <span>STUDENT AERODESIGN · TUMAKURU, INDIA</span>

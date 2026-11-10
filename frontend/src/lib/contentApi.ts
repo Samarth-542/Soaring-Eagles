@@ -1,4 +1,6 @@
 import { fetchCsrfToken } from './adminAuth'
+import { fetchPublicJson } from './publicApi'
+import { invalidatePublicDataCache } from './publicDataCache'
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 const contentPath = '/api/v1/content'
@@ -109,7 +111,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 async function mutate<T>(path: string, method: 'POST' | 'PUT' | 'DELETE', body?: unknown) {
   const csrfToken = await fetchCsrfToken()
-  return request<T>(path, {
+  const result = await request<T>(path, {
     method,
     headers: body === undefined ? { 'X-XSRF-TOKEN': csrfToken } : {
       'Content-Type': 'application/json',
@@ -117,6 +119,12 @@ async function mutate<T>(path: string, method: 'POST' | 'PUT' | 'DELETE', body?:
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
+
+  if (path === '/api/v1/admin/site-details') invalidatePublicDataCache('site-details')
+  else if (path.startsWith(`${adminContentPath}/team`)) invalidatePublicDataCache('team')
+  else if (path.startsWith(`${adminContentPath}/projects`)) invalidatePublicDataCache('projects')
+  else if (path.startsWith(`${adminContentPath}/journey`)) invalidatePublicDataCache('journey')
+  return result
 }
 
 export async function uploadContentImage(file: File, section: 'team' | 'projects' | 'journey' | 'events') {
@@ -146,19 +154,19 @@ export async function uploadContentImage(file: File, section: 'team' | 'projects
 }
 
 export function fetchPublicTeam() {
-  return request<TeamDirectory>(`${contentPath}/team`, { credentials: 'omit' })
+  return fetchPublicJson<TeamDirectory>(`${apiBaseUrl}${contentPath}/team`)
 }
 
 export function fetchPublicProjects() {
-  return request<Project[]>(`${contentPath}/projects`, { credentials: 'omit' })
+  return fetchPublicJson<Project[]>(`${apiBaseUrl}${contentPath}/projects`)
 }
 
 export function fetchPublicJourney() {
-  return request<JourneyMilestone[]>(`${contentPath}/journey`, { credentials: 'omit' })
+  return fetchPublicJson<JourneyMilestone[]>(`${apiBaseUrl}${contentPath}/journey`)
 }
 
 export function fetchPublicSiteDetails() {
-  return request<SiteDetails>(`${contentPath}/site-details`, { credentials: 'omit' })
+  return fetchPublicJson<SiteDetails>(`${apiBaseUrl}${contentPath}/site-details`)
 }
 
 export function fetchAdminSiteDetails() {

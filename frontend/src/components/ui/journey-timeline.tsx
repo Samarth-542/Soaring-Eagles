@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { JourneyMilestone } from '../../lib/contentApi'
 import useReducedMotion from '../../hooks/useReducedMotion'
+import ResponsiveImage from '../ResponsiveImage'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -88,11 +89,10 @@ export default function JourneyTimeline({ milestones }: { milestones: JourneyMil
             </div>
             <article className="journey-timeline-card">
               <div className="journey-timeline-image">
-                <img
+                <ResponsiveImage
                   src={milestone.imageUrl}
                   alt={`${milestone.title} milestone`}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  decoding="async"
                 />
                 <span className="journey-timeline-index" aria-hidden="true">
                   {String(index + 1).padStart(2, '0')}
