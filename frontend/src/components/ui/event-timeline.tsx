@@ -3,16 +3,16 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { pastEvents, type ClubEvent } from '../../data/events'
 import useReducedMotion from '../../hooks/useReducedMotion'
-import type { PublicEventRecord } from '../../lib/eventsApi'
+import type { PublicEventSnapshot } from '../../lib/publicContentApi'
 import ResponsiveImage from '../ResponsiveImage'
 
 gsap.registerPlugin(ScrollTrigger)
 
 interface EventTimelineProps {
-  events?: PublicEventRecord[]
+  events?: PublicEventSnapshot[]
 }
 
-function toTimelineEvent(event: PublicEventRecord): ClubEvent {
+function toTimelineEvent(event: PublicEventSnapshot): ClubEvent {
   const date = new Date(event.startsAt)
   const formattedDate = new Intl.DateTimeFormat('en-IN', {
     day: 'numeric',
@@ -101,7 +101,9 @@ export default function EventTimeline({ events }: EventTimelineProps) {
     }
   }, [reducedMotion])
 
-  const timelineEvents = (events && events.length > 0 ? events.filter((event) => event.ended).map(toTimelineEvent) : pastEvents)
+  const timelineEvents = (events && events.length > 0
+    ? events.filter((event) => new Date(event.endsAt).getTime() < Date.now()).map(toTimelineEvent)
+    : pastEvents)
     .slice()
     .sort((left, right) => right.sortDate.localeCompare(left.sortDate))
 

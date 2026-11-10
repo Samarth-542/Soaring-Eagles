@@ -5,13 +5,12 @@ import ResponsiveImage from '../components/ResponsiveImage'
 import SiteHeader from '../components/SiteHeader'
 import JourneyTimeline from '../components/ui/journey-timeline'
 import { fetchPublicJourney } from '../lib/contentApi'
-import type { JourneyMilestone } from '../lib/contentApi'
 import { usePublicData } from '../lib/usePublicData'
 import './OurJourneyPage.css'
 
 function OurJourneyPage() {
-  const journeyData = usePublicData<JourneyMilestone[]>('journey', 300_000, fetchPublicJourney)
-  const milestones = journeyData.data
+  const journeyData = usePublicData('journey', 300_000, fetchPublicJourney)
+  const milestones = journeyData.data?.data
 
   useEffect(() => {
     document.title = 'Our Journey | Soaring Eagles'

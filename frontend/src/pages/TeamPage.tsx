@@ -4,13 +4,13 @@ import PublicDataStatus from '../components/PublicDataStatus'
 import ResponsiveImage from '../components/ResponsiveImage'
 import SiteHeader from '../components/SiteHeader'
 import { fetchPublicTeam } from '../lib/contentApi'
-import type { TeamDirectory as TeamDirectoryData } from '../lib/contentApi'
 import { usePublicData } from '../lib/usePublicData'
 import './TeamPage.css'
 
 function TeamPage() {
-  const teamData = usePublicData<TeamDirectoryData>('team', 300_000, fetchPublicTeam)
-  const directory = teamData.data
+  const teamData = usePublicData('team', 300_000, fetchPublicTeam)
+  const directory = teamData.data?.data
+  const groups = Array.isArray(directory?.groups) ? directory.groups : null
 
   useEffect(() => {
     document.title = 'Our Team | Soaring Eagles'
@@ -38,11 +38,11 @@ function TeamPage() {
             </div>
           </div>
 
-          {!directory ? (
+          {!groups ? (
             <PublicDataStatus
-              isLoading={teamData.isLoading}
+              isLoading={teamData.isLoading && teamData.data === null}
               isRefreshing={teamData.isRefreshing}
-              error={teamData.error}
+              error={teamData.error || teamData.data !== null}
               hasData={false}
               errorMessage="Team profiles could not be loaded. Please try again."
               onRetry={teamData.retry}
@@ -57,7 +57,7 @@ function TeamPage() {
               onRetry={teamData.retry}
             />
             <div className="team-groups">
-            {directory.groups.map((section) => (
+            {groups.map((section) => (
               <section className="team-group" id={section.id} key={section.id} aria-labelledby={`${section.id}-title`}>
                 <div className="team-group-heading">
                   <h3 id={`${section.id}-title`}>{section.title}</h3>

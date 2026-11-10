@@ -14,6 +14,16 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     List<Event> findAllByOrderByStartsAtDesc();
 
     @Query("""
+            select event.id as eventId, event.scheduledPublishAt as publishAt
+            from Event event
+            where event.publicationState = :publicationState
+              and event.scheduledPublishAt is not null
+            order by event.scheduledPublishAt asc
+            """)
+    List<ScheduledPublicationProjection> findScheduledPublications(
+            @Param("publicationState") EventStatus publicationState);
+
+    @Query("""
             select distinct event from Event event
             left join fetch event.archivePhotos
             order by event.startsAt desc
@@ -37,4 +47,9 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select event from Event event where event.id = :id")
     java.util.Optional<Event> findByIdForUpdate(@Param("id") UUID id);
+
+    interface ScheduledPublicationProjection {
+        UUID getEventId();
+        OffsetDateTime getPublishAt();
+    }
 }

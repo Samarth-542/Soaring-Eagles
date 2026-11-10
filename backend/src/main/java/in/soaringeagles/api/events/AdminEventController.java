@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import in.soaringeagles.api.publiccontent.PublicContentSnapshotPublisher;
+import in.soaringeagles.api.publiccontent.ScheduledEventSnapshotPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -24,9 +26,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminEventController {
 
     private final EventService eventService;
+    private final PublicContentSnapshotPublisher snapshotPublisher;
+    private final ScheduledEventSnapshotPublisher scheduledSnapshotPublisher;
 
-    AdminEventController(EventService eventService) {
+    AdminEventController(
+            EventService eventService,
+            PublicContentSnapshotPublisher snapshotPublisher,
+            ScheduledEventSnapshotPublisher scheduledSnapshotPublisher) {
         this.eventService = eventService;
+        this.snapshotPublisher = snapshotPublisher;
+        this.scheduledSnapshotPublisher = scheduledSnapshotPublisher;
     }
 
     @GetMapping
@@ -36,35 +45,58 @@ public class AdminEventController {
 
     @PostMapping
     public ResponseEntity<EventView> create(@Valid @RequestBody EventRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(request));
+        EventView event = eventService.create(request);
+        scheduledSnapshotPublisher.syncAfterMutation(event);
+        publishIfPublic(event);
+        return ResponseEntity.status(HttpStatus.CREATED).body(event);
     }
 
     @PutMapping("/{id}")
     public EventView update(@PathVariable UUID id, @Valid @RequestBody EventRequest request) {
-        return eventService.update(id, request);
+        EventView event = eventService.update(id, request);
+        scheduledSnapshotPublisher.syncAfterMutation(event);
+        publishIfPublic(event);
+        return event;
     }
 
     @PostMapping("/{id}/schedule")
     public EventView schedule(
             @PathVariable UUID id,
             @Valid @RequestBody ScheduleRequest request) {
-        return eventService.schedule(id, request.publishAt());
+        EventView event = eventService.schedule(id, request.publishAt());
+        scheduledSnapshotPublisher.syncAfterMutation(event);
+        publishIfPublic(event);
+        return event;
     }
 
     @PostMapping("/{id}/publish")
     public EventView publish(@PathVariable UUID id) {
-        return eventService.publish(id);
+        EventView event = eventService.publish(id);
+        scheduledSnapshotPublisher.syncAfterMutation(event);
+        publishIfPublic(event);
+        return event;
     }
 
     @PostMapping("/{id}/close")
     public EventView close(@PathVariable UUID id) {
-        return eventService.close(id);
+        EventView event = eventService.close(id);
+        scheduledSnapshotPublisher.syncAfterMutation(event);
+        publishIfPublic(event);
+        return event;
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        eventService.delete(id);
+        boolean wasPublic = eventService.delete(id);
+        scheduledSnapshotPublisher.cancelAfterMutation(id);
+        if (wasPublic) snapshotPublisher.publishAfterMutation();
         return ResponseEntity.noContent().build();
+    }
+
+    private void publishIfPublic(EventView event) {
+        if (event.status() == EventStatus.PUBLISHED || event.status() == EventStatus.CLOSED) {
+            snapshotPublisher.publishAfterMutation();
+        }
     }
 
     public record ScheduleRequest(@NotNull OffsetDateTime publishAt) {

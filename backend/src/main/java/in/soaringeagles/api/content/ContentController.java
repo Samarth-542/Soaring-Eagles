@@ -11,6 +11,7 @@ import in.soaringeagles.api.content.ContentRecords.ProjectRequest;
 import in.soaringeagles.api.content.ContentRecords.TeamGroup;
 import in.soaringeagles.api.content.ContentRecords.TeamMember;
 import in.soaringeagles.api.content.ContentRecords.TeamMemberRequest;
+import in.soaringeagles.api.publiccontent.PublicContentSnapshotPublisher;
 import jakarta.validation.Valid;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,15 @@ public class ContentController {
 
     private final ContentService contentService;
     private final ContentImageStorageService imageStorageService;
+    private final PublicContentSnapshotPublisher snapshotPublisher;
 
-    ContentController(ContentService contentService, ContentImageStorageService imageStorageService) {
+    ContentController(
+            ContentService contentService,
+            ContentImageStorageService imageStorageService,
+            PublicContentSnapshotPublisher snapshotPublisher) {
         this.contentService = contentService;
         this.imageStorageService = imageStorageService;
+        this.snapshotPublisher = snapshotPublisher;
     }
 
     @PostMapping(path = "/api/v1/admin/content/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -82,18 +88,22 @@ public class ContentController {
 
     @PostMapping("/api/v1/admin/content/team")
     public ResponseEntity<TeamMember> createTeamMember(@Valid @RequestBody TeamMemberRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(contentService.createTeamMember(request));
+        TeamMember member = contentService.createTeamMember(request);
+        if (member.published()) snapshotPublisher.publishAfterMutation();
+        return ResponseEntity.status(HttpStatus.CREATED).body(member);
     }
 
     @PutMapping("/api/v1/admin/content/team/{id}")
     public TeamMember updateTeamMember(
             @PathVariable UUID id, @Valid @RequestBody TeamMemberRequest request) {
-        return contentService.updateTeamMember(id, request);
+        ContentService.ContentMutation<TeamMember> mutation = contentService.updateTeamMember(id, request);
+        if (mutation.publishedContentChanged()) snapshotPublisher.publishAfterMutation();
+        return mutation.record();
     }
 
     @DeleteMapping("/api/v1/admin/content/team/{id}")
     public ResponseEntity<Void> deleteTeamMember(@PathVariable UUID id) {
-        contentService.deleteTeamMember(id);
+        if (contentService.deleteTeamMember(id)) snapshotPublisher.publishAfterMutation();
         return ResponseEntity.noContent().build();
     }
 
@@ -104,17 +114,21 @@ public class ContentController {
 
     @PostMapping("/api/v1/admin/content/projects")
     public ResponseEntity<Project> createProject(@Valid @RequestBody ProjectRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(contentService.createProject(request));
+        Project project = contentService.createProject(request);
+        if (project.published()) snapshotPublisher.publishAfterMutation();
+        return ResponseEntity.status(HttpStatus.CREATED).body(project);
     }
 
     @PutMapping("/api/v1/admin/content/projects/{id}")
     public Project updateProject(@PathVariable UUID id, @Valid @RequestBody ProjectRequest request) {
-        return contentService.updateProject(id, request);
+        ContentService.ContentMutation<Project> mutation = contentService.updateProject(id, request);
+        if (mutation.publishedContentChanged()) snapshotPublisher.publishAfterMutation();
+        return mutation.record();
     }
 
     @DeleteMapping("/api/v1/admin/content/projects/{id}")
     public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
-        contentService.deleteProject(id);
+        if (contentService.deleteProject(id)) snapshotPublisher.publishAfterMutation();
         return ResponseEntity.noContent().build();
     }
 
@@ -126,18 +140,23 @@ public class ContentController {
     @PostMapping("/api/v1/admin/content/journey")
     public ResponseEntity<JourneyMilestone> createJourneyMilestone(
             @Valid @RequestBody JourneyMilestoneRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(contentService.createJourneyMilestone(request));
+        JourneyMilestone milestone = contentService.createJourneyMilestone(request);
+        if (milestone.published()) snapshotPublisher.publishAfterMutation();
+        return ResponseEntity.status(HttpStatus.CREATED).body(milestone);
     }
 
     @PutMapping("/api/v1/admin/content/journey/{id}")
     public JourneyMilestone updateJourneyMilestone(
             @PathVariable UUID id, @Valid @RequestBody JourneyMilestoneRequest request) {
-        return contentService.updateJourneyMilestone(id, request);
+        ContentService.ContentMutation<JourneyMilestone> mutation =
+                contentService.updateJourneyMilestone(id, request);
+        if (mutation.publishedContentChanged()) snapshotPublisher.publishAfterMutation();
+        return mutation.record();
     }
 
     @DeleteMapping("/api/v1/admin/content/journey/{id}")
     public ResponseEntity<Void> deleteJourneyMilestone(@PathVariable UUID id) {
-        contentService.deleteJourneyMilestone(id);
+        if (contentService.deleteJourneyMilestone(id)) snapshotPublisher.publishAfterMutation();
         return ResponseEntity.noContent().build();
     }
 

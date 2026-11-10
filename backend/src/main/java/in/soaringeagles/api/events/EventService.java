@@ -91,9 +91,10 @@ public class EventService {
         return toView(eventRepository.saveAndFlush(event), nowUtc());
     }
 
-    public void delete(UUID id) {
+    public boolean delete(UUID id) {
         Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
+        boolean wasPublic = isPublic(event, nowUtc());
         String registrationsForEvent = "SELECT id FROM event_registrations WHERE event_id = ?";
         jdbc.update(
                 "DELETE FROM registration_email_deliveries WHERE registration_id IN ("
@@ -110,6 +111,7 @@ public class EventService {
         jdbc.update("DELETE FROM event_registrations WHERE event_id = ?", id);
         eventRepository.delete(event);
         eventRepository.flush();
+        return wasPublic;
     }
 
     @Transactional(readOnly = true)
@@ -143,6 +145,15 @@ public class EventService {
         return toPublicView(event, now);
     }
 
+    @Transactional(readOnly = true)
+    public List<ScheduledPublication> listScheduledPublications() {
+        return eventRepository
+                .findScheduledPublications(EventStatus.SCHEDULED)
+                .stream()
+                .map(event -> new ScheduledPublication(event.getEventId(), event.getPublishAt()))
+                .toList();
+    }
+
     private Event findById(UUID id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
@@ -165,6 +176,7 @@ public class EventService {
         if (request.paymentMethod() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select a payment method for the event.");
         }
+
         if (!request.endsAt().isAfter(request.startsAt())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The event end must be after its start.");
         }
@@ -314,5 +326,8 @@ public class EventService {
                 view.archiveStory(),
                 view.archiveResults(),
                 view.archivePhotos());
+    }
+
+    public record ScheduledPublication(UUID eventId, OffsetDateTime publishAt) {
     }
 }

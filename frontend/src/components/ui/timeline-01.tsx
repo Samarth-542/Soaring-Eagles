@@ -1,13 +1,13 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import type { Project } from '../../lib/contentApi'
+import type { PublicProject } from '../../lib/publicContentApi'
 import useReducedMotion from '../../hooks/useReducedMotion'
 import ResponsiveImage from '../ResponsiveImage'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function ProjectTimeline({ projects }: { projects: Project[] }) {
+export default function ProjectTimeline({ projects }: { projects: PublicProject[] }) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion()
 

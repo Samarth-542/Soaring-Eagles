@@ -2,6 +2,7 @@ package in.soaringeagles.api.content;
 
 import java.time.Duration;
 
+import in.soaringeagles.api.publiccontent.PublicContentSnapshotPublisher;
 import jakarta.validation.Valid;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class SiteDetailsController {
 
     private final SiteDetailsService siteDetailsService;
+    private final PublicContentSnapshotPublisher snapshotPublisher;
 
-    SiteDetailsController(SiteDetailsService siteDetailsService) {
+    SiteDetailsController(
+            SiteDetailsService siteDetailsService,
+            PublicContentSnapshotPublisher snapshotPublisher) {
         this.siteDetailsService = siteDetailsService;
+        this.snapshotPublisher = snapshotPublisher;
     }
 
     @GetMapping("/api/v1/content/site-details")
@@ -37,6 +42,8 @@ public class SiteDetailsController {
     public SiteDetailsService.SiteDetails update(
             @Valid @RequestBody SiteDetailsService.SiteDetailsRequest request,
             java.security.Principal actor) {
-        return siteDetailsService.update(request, actor.getName());
+        SiteDetailsService.SiteDetails details = siteDetailsService.update(request, actor.getName());
+        snapshotPublisher.publishAfterMutation();
+        return details;
     }
 }

@@ -49,12 +49,13 @@ function DroneExperienceLoader({
 function HomePage() {
   const headerRef = useRef<HTMLElement>(null)
   const heroRef = useRef<HTMLElement>(null)
-  const eventData = usePublicData('events', 25_000, fetchPublicEvents)
+  const eventData = usePublicData('events', 30_000, fetchPublicEvents)
   const siteDetailsData = usePublicData('site-details', 300_000, fetchPublicSiteDetails)
-  const nextEvent = useMemo(() => eventData.data
-    ?.filter((event) => !event.ended)
-    .sort((left, right) => left.startsAt.localeCompare(right.startsAt))[0] ?? null, [eventData.data])
-  const siteDetails = siteDetailsData.data
+  const eventList = eventData.data?.data
+  const nextEvent = useMemo(() => eventList
+    ?.filter((event) => new Date(event.endsAt).getTime() >= Date.now())
+    .sort((left, right) => left.startsAt.localeCompare(right.startsAt))[0] ?? null, [eventList])
+  const siteDetails = siteDetailsData.data?.data
   const { overlayRef, introDismissed, startReveal } = useHeroReveal(heroRef, headerRef)
   const handleModelReady = useCallback((model?: Group, riseDistance?: number) => {
     startReveal(model, riseDistance)
@@ -116,10 +117,10 @@ function HomePage() {
                   <h3>{nextEvent.title}</h3>
                   <p>
                     {new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(nextEvent.startsAt))}
-                    {' · '}{nextEvent.venue}{' · '}₹{Number(nextEvent.feeInr).toLocaleString('en-IN')}
+                    {' · '}{nextEvent.venue}
                   </p>
                 </>
-              ) : eventData.data ? (
+              ) : eventList ? (
                 <>
                   <h3>No upcoming events announced</h3>
                   <p>There are no upcoming events to share right now. Check back for the next Soaring Eagles announcement.</p>

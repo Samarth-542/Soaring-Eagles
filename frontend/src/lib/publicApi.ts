@@ -25,14 +25,14 @@ async function responseError(response: Response) {
   return new PublicApiError(detail || `Public content request failed (${response.status}).`, response.status)
 }
 
-export async function fetchPublicJson<T>(url: string): Promise<T> {
+export async function fetchPublicJson<T>(url: string, cache: RequestCache = 'no-cache'): Promise<T> {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const controller = new AbortController()
     const timeout = window.setTimeout(() => controller.abort(), requestTimeoutMs)
 
     try {
       const response = await fetch(url, {
-        cache: 'no-cache',
+        cache,
         credentials: 'omit',
         signal: controller.signal,
       })

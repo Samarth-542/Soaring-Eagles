@@ -35,7 +35,11 @@ function PublicDataStatus({
   }
 
   if (isRefreshing && hasData) {
-    return <p className="public-data-refresh" role="status">Refreshing saved content…</p>
+    return (
+      <p className="public-data-refresh" role="status">
+        Refreshing saved content…
+      </p>
+    )
   }
 
   return null

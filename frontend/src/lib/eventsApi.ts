@@ -1,6 +1,7 @@
 import { fetchCsrfToken } from './adminAuth'
 import { fetchPublicJson } from './publicApi'
 import { invalidatePublicEventDataCache } from './publicDataCache'
+import { fetchPublicEventSnapshots, invalidatePublicSnapshotManifest } from './publicContentApi'
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 const publicEventsPath = '/api/v1/events'
@@ -102,11 +103,12 @@ async function mutate<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
   })
   invalidatePublicEventDataCache()
+  invalidatePublicSnapshotManifest()
   return result
 }
 
 export function fetchPublicEvents() {
-  return fetchPublicJson<PublicEventRecord[]>(`${apiBaseUrl}${publicEventsPath}`)
+  return fetchPublicEventSnapshots()
 }
 
 export function fetchPublicEvent(id: string) {

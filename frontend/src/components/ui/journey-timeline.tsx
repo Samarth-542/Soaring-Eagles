@@ -1,13 +1,13 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import type { JourneyMilestone } from '../../lib/contentApi'
+import type { PublicJourneyMilestone } from '../../lib/publicContentApi'
 import useReducedMotion from '../../hooks/useReducedMotion'
 import ResponsiveImage from '../ResponsiveImage'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function JourneyTimeline({ milestones }: { milestones: JourneyMilestone[] }) {
+export default function JourneyTimeline({ milestones }: { milestones: PublicJourneyMilestone[] }) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion()
 

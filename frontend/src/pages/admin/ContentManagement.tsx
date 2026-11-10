@@ -7,6 +7,7 @@ import {
   fetchAdminJourney,
   fetchAdminProjects,
   fetchAdminTeam,
+  publishPublicSnapshots,
   saveJourneyMilestone,
   saveProject,
   saveTeamMember,
@@ -75,6 +76,7 @@ function ContentManagement({ section }: { section: ContentSection }) {
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
   const [busyId, setBusyId] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -256,6 +258,20 @@ function ContentManagement({ section }: { section: ContentSection }) {
     }
   }
 
+  const publishSnapshots = async () => {
+    setIsPublishing(true)
+    setError('')
+    setNotice('')
+    try {
+      const manifest = await publishPublicSnapshots()
+      setNotice(`Public snapshots published as version ${manifest.version}.`)
+    } catch (publishError) {
+      setError(publishError instanceof Error ? publishError.message : 'Public snapshots could not be published.')
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
   const field = (name: keyof ContentForm, value: string | boolean) => {
     setForm((current) => ({ ...current, [name]: value }))
   }
@@ -276,6 +292,15 @@ function ContentManagement({ section }: { section: ContentSection }) {
           {error || notice}
         </p>
       )}
+
+      <section className="admin-content-panel" aria-label="Public snapshot publishing">
+        <p>Retry publishing public snapshots after a storage or network interruption.</p>
+        <div className="admin-content-actions">
+          <button type="button" disabled={isPublishing} onClick={() => void publishSnapshots()}>
+            {isPublishing ? 'PUBLISHING…' : 'PUBLISH PUBLIC SNAPSHOTS'}
+          </button>
+        </div>
+      </section>
 
       <section className="admin-content-panel" aria-labelledby="admin-content-form-title">
         <div className="admin-event-panel-heading">

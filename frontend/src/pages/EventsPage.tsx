@@ -9,8 +9,8 @@ import { usePublicData } from '../lib/usePublicData'
 import './EventsPage.css'
 
 function EventsPage() {
-  const eventData = usePublicData('events', 25_000, fetchPublicEvents)
-  const events = eventData.data ?? []
+  const eventData = usePublicData('events', 30_000, fetchPublicEvents)
+  const events = eventData.data?.data ?? []
 
   useEffect(() => {
     document.title = 'Events | Soaring Eagles'
@@ -20,9 +20,9 @@ function EventsPage() {
   }, [])
 
   const upcomingEvents = events
-    .filter((event) => !event.ended)
+    .filter((event) => new Date(event.endsAt).getTime() >= Date.now())
     .sort((left, right) => left.startsAt.localeCompare(right.startsAt))
-  const archivedEvents = events.filter((event) => event.ended)
+  const archivedEvents = events.filter((event) => new Date(event.endsAt).getTime() < Date.now())
 
   return (
     <div className="events-page">
@@ -58,7 +58,7 @@ function EventsPage() {
                   <p>{event.description}</p>
                   <p className="events-event-meta">
                     {new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(event.startsAt))}
-                    {' · '}{event.venue}{' · '}₹{Number(event.feeInr).toLocaleString('en-IN')}
+                    {' · '}{event.venue}
                   </p>
                   <Link to={`/events/${event.id}`}>VIEW EVENT DETAILS <span aria-hidden="true">↗</span></Link>
                 </article>

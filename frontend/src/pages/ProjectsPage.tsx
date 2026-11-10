@@ -5,13 +5,12 @@ import ResponsiveImage from '../components/ResponsiveImage'
 import SiteHeader from '../components/SiteHeader'
 import ProjectTimeline from '../components/ui/timeline-01'
 import { fetchPublicProjects } from '../lib/contentApi'
-import type { Project } from '../lib/contentApi'
 import { usePublicData } from '../lib/usePublicData'
 import './ProjectsPage.css'
 
 function ProjectsPage() {
-  const projectData = usePublicData<Project[]>('projects', 300_000, fetchPublicProjects)
-  const projects = projectData.data
+  const projectData = usePublicData('projects', 300_000, fetchPublicProjects)
+  const projects = projectData.data?.data
 
   useEffect(() => {
     document.title = 'Our Projects | Soaring Eagles'

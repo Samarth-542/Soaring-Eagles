@@ -76,7 +76,8 @@ public class ContentService {
         return findTeamMember(id);
     }
 
-    public TeamMember updateTeamMember(UUID id, TeamMemberRequest request) {
+    public ContentMutation<TeamMember> updateTeamMember(UUID id, TeamMemberRequest request) {
+        boolean wasPublished = wasPublished("team_members", id, "Team member");
         int updated = jdbc.update("""
                 UPDATE team_members
                 SET group_id = ?, name = ?, role = ?, image_url = ?, linkedin_url = ?,
@@ -87,11 +88,14 @@ public class ContentService {
                 request.imageUrl().trim(), optional(request.linkedinUrl()), optional(request.instagramUrl()),
                 optional(request.xUrl()), request.position(), request.published(), id);
         if (updated == 0) throw notFound("Team member");
-        return findTeamMember(id);
+        TeamMember member = findTeamMember(id);
+        return new ContentMutation<>(member, wasPublished || member.published());
     }
 
-    public void deleteTeamMember(UUID id) {
+    public boolean deleteTeamMember(UUID id) {
+        boolean wasPublished = wasPublished("team_members", id, "Team member");
         if (jdbc.update("DELETE FROM team_members WHERE id = ?", id) == 0) throw notFound("Team member");
+        return wasPublished;
     }
 
     @Transactional(readOnly = true)
@@ -135,7 +139,8 @@ public class ContentService {
         return findProject(id);
     }
 
-    public Project updateProject(UUID id, ProjectRequest request) {
+    public ContentMutation<Project> updateProject(UUID id, ProjectRequest request) {
+        boolean wasPublished = wasPublished("projects", id, "Project");
         int updated = jdbc.update("""
                 UPDATE projects
                 SET title = ?, project_year = ?, description = ?, image_url = ?, position = ?,
@@ -145,11 +150,14 @@ public class ContentService {
                 request.imageUrl().trim(), request.position(), request.published(), id);
         if (updated == 0) throw notFound("Project");
         replaceTags(id, request.tags());
-        return findProject(id);
+        Project project = findProject(id);
+        return new ContentMutation<>(project, wasPublished || project.published());
     }
 
-    public void deleteProject(UUID id) {
+    public boolean deleteProject(UUID id) {
+        boolean wasPublished = wasPublished("projects", id, "Project");
         if (jdbc.update("DELETE FROM projects WHERE id = ?", id) == 0) throw notFound("Project");
+        return wasPublished;
     }
 
     @Transactional(readOnly = true)
@@ -176,7 +184,8 @@ public class ContentService {
         return findJourneyMilestone(id);
     }
 
-    public JourneyMilestone updateJourneyMilestone(UUID id, JourneyMilestoneRequest request) {
+    public ContentMutation<JourneyMilestone> updateJourneyMilestone(UUID id, JourneyMilestoneRequest request) {
+        boolean wasPublished = wasPublished("journey_milestones", id, "Journey milestone");
         int updated = jdbc.update("""
                 UPDATE journey_milestones
                 SET milestone_year = ?, title = ?, description = ?, image_url = ?, position = ?,
@@ -185,11 +194,14 @@ public class ContentService {
                 """, request.year(), request.title().trim(), request.description().trim(),
                 request.imageUrl().trim(), request.position(), request.published(), id);
         if (updated == 0) throw notFound("Journey milestone");
-        return findJourneyMilestone(id);
+        JourneyMilestone milestone = findJourneyMilestone(id);
+        return new ContentMutation<>(milestone, wasPublished || milestone.published());
     }
 
-    public void deleteJourneyMilestone(UUID id) {
+    public boolean deleteJourneyMilestone(UUID id) {
+        boolean wasPublished = wasPublished("journey_milestones", id, "Journey milestone");
         if (jdbc.update("DELETE FROM journey_milestones WHERE id = ?", id) == 0) throw notFound("Journey milestone");
+        return wasPublished;
     }
 
     private TeamMember findTeamMember(UUID id) {
@@ -253,11 +265,23 @@ public class ContentService {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    private boolean wasPublished(String table, UUID id, String resource) {
+        List<Boolean> published = jdbc.query(
+                "SELECT published FROM " + table + " WHERE id = ? FOR UPDATE",
+                (rs, row) -> rs.getBoolean("published"),
+                id);
+        if (published.isEmpty()) throw notFound(resource);
+        return published.get(0);
+    }
+
     private ResponseStatusException notFound(String resource) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, resource + " not found.");
     }
 
     private record ProjectRow(
             UUID id, String title, int year, String description, String imageUrl, int position, boolean published) {
+    }
+
+    public record ContentMutation<T>(T record, boolean publishedContentChanged) {
     }
 }

@@ -221,16 +221,15 @@ function RegistrationForm({ event }: { event: PublicEventRecord }) {
       memberIndex === index ? { ...member, [field]: value } : member))
   }
 
-  const canRegister = event.registrationWindowOpen && (event.remainingCapacity ?? 0) > 0
-
   return (
     <section className="registration-panel" aria-labelledby="registration-heading">
       <div className="registration-panel-heading">
         <p className="events-section-label">ONLINE REGISTRATION</p>
         <h2 id="registration-heading">Join this <em>event.</em></h2>
         <p>
-          {event.remainingCapacity} {event.registrationType === 'TEAM' ? 'team places' : 'individual places'} remain.
+          {event.remainingCapacity} {event.registrationType === 'TEAM' ? 'team places' : 'individual places'} were reported at the last live check.
           {event.feeInr > 0 ? ' A 10-minute capacity hold starts when checkout begins.' : ' This event is free.'}
+          {' '}The server checks current availability when you submit.
         </p>
       </div>
 
@@ -260,7 +259,7 @@ function RegistrationForm({ event }: { event: PublicEventRecord }) {
               Continue to payment
             </button>
           )}
-          {checkout.retryAllowed && canRegister && (
+          {checkout.retryAllowed && (
             <button type="button" className="registration-submit" disabled={isSubmitting} onClick={() => void handleRetry()}>
               {isSubmitting ? 'Preparing checkout…' : 'Retry payment'}
             </button>
@@ -351,7 +350,7 @@ function RegistrationForm({ event }: { event: PublicEventRecord }) {
             Contact and participant details are shared only with authorized event admins and the payment provider.
           </p>
           {error && <p className="registration-error" role="alert">{error}</p>}
-          <button type="submit" className="registration-submit" disabled={isSubmitting || !canRegister}>
+          <button type="submit" className="registration-submit" disabled={isSubmitting}>
             {isSubmitting ? 'Starting registration…' : event.feeInr > 0
               ? `Continue to payment · ₹${Number(event.feeInr).toLocaleString('en-IN')}`
               : 'Register for free'}

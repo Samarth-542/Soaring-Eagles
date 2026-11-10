@@ -8,3 +8,7 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
   flyway:
     clean-disabled: true
+
+app:
+  supabase:
+    public-content-publishing-enabled: false

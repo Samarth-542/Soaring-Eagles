@@ -117,4 +117,18 @@ class ContentManagementIntegrationTest {
                         "Image uploads require SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the backend. "
                                 + "Configure a public Supabase Storage bucket (default: se_data) and restart the API."));
     }
+
+    @Test
+    void manualSnapshotPublishingRequiresAdminAndConfiguredStorage() throws Exception {
+        mockMvc.perform(post("/api/v1/admin/public-content/publish")
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/v1/admin/public-content/publish")
+                        .with(user(TestAdminCredentials.EMAIL).roles("ADMIN"))
+                        .with(csrf()))
+                        .andExpect(status().isServiceUnavailable())
+                        .andExpect(jsonPath("$.detail").value(
+                                "Public snapshot publishing is disabled by configuration."));
+    }
 }

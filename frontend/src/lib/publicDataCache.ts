@@ -11,7 +11,7 @@ interface CacheRecord {
   data: unknown
 }
 
-const storagePrefix = 'soaring-eagles:public-data:'
+const storagePrefix = 'soaring-eagles:public-data:v2:'
 const memoryCache = new Map<PublicDataKey, CacheRecord>()
 const inFlightRequests = new Map<PublicDataKey, Promise<unknown>>()
 const revisions = new Map<PublicDataKey, number>()
@@ -131,6 +131,31 @@ export function invalidatePublicEventDataCache() {
         const storageKey = storage.key(index)
         if (!storageKey?.startsWith(`${storagePrefix}event:`)) continue
         keys.add(storageKey.slice(storagePrefix.length) as PublicDataKey)
+      }
+    } catch (error) {
+      if (!isStorageError(error)) throw error
+      warnStorageUnavailable(error)
+    }
+  }
+
+  for (const key of keys) invalidateKey(key)
+}
+
+export function invalidateAllPublicDataCache() {
+  const keys = new Set<PublicDataKey>(['events', 'team', 'projects', 'journey', 'site-details'])
+  for (const key of memoryCache.keys()) keys.add(key)
+
+  const storage = getSessionStorage()
+  if (storage) {
+    try {
+      for (let index = storage.length - 1; index >= 0; index -= 1) {
+        const storageKey = storage.key(index)
+        if (!storageKey?.startsWith(storagePrefix)) continue
+        const key = storageKey.slice(storagePrefix.length)
+        if (key === 'events' || key === 'team' || key === 'projects' || key === 'journey' || key === 'site-details'
+          || key.startsWith('event:')) {
+          keys.add(key as PublicDataKey)
+        }
       }
     } catch (error) {
       if (!isStorageError(error)) throw error

@@ -1,9 +1,15 @@
 import { fetchCsrfToken } from './adminAuth'
-import { fetchPublicJson } from './publicApi'
-import { invalidatePublicDataCache } from './publicDataCache'
+import { invalidateAllPublicDataCache, invalidatePublicDataCache } from './publicDataCache'
+import {
+  fetchPublicJourneySnapshot,
+  fetchPublicProjectsSnapshot,
+  fetchPublicSiteDetailsSnapshot,
+  fetchPublicTeamSnapshot,
+  invalidatePublicSnapshotManifest,
+} from './publicContentApi'
+import type { SnapshotManifest } from './publicContentApi'
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
-const contentPath = '/api/v1/content'
 const adminContentPath = '/api/v1/admin/content'
 
 export interface TeamGroup {
@@ -124,7 +130,13 @@ async function mutate<T>(path: string, method: 'POST' | 'PUT' | 'DELETE', body?:
   else if (path.startsWith(`${adminContentPath}/team`)) invalidatePublicDataCache('team')
   else if (path.startsWith(`${adminContentPath}/projects`)) invalidatePublicDataCache('projects')
   else if (path.startsWith(`${adminContentPath}/journey`)) invalidatePublicDataCache('journey')
+  else if (path === '/api/v1/admin/public-content/publish') invalidateAllPublicDataCache()
+  invalidatePublicSnapshotManifest()
   return result
+}
+
+export function publishPublicSnapshots() {
+  return mutate<SnapshotManifest>('/api/v1/admin/public-content/publish', 'POST')
 }
 
 export async function uploadContentImage(file: File, section: 'team' | 'projects' | 'journey' | 'events') {
@@ -154,19 +166,19 @@ export async function uploadContentImage(file: File, section: 'team' | 'projects
 }
 
 export function fetchPublicTeam() {
-  return fetchPublicJson<TeamDirectory>(`${apiBaseUrl}${contentPath}/team`)
+  return fetchPublicTeamSnapshot()
 }
 
 export function fetchPublicProjects() {
-  return fetchPublicJson<Project[]>(`${apiBaseUrl}${contentPath}/projects`)
+  return fetchPublicProjectsSnapshot()
 }
 
 export function fetchPublicJourney() {
-  return fetchPublicJson<JourneyMilestone[]>(`${apiBaseUrl}${contentPath}/journey`)
+  return fetchPublicJourneySnapshot()
 }
 
 export function fetchPublicSiteDetails() {
-  return fetchPublicJson<SiteDetails>(`${apiBaseUrl}${contentPath}/site-details`)
+  return fetchPublicSiteDetailsSnapshot()
 }
 
 export function fetchAdminSiteDetails() {
